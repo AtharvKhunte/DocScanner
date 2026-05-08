@@ -5,6 +5,7 @@ package com.example.documentscanner.ui.screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -200,11 +201,34 @@ fun capturePhoto(
         Executors.newSingleThreadExecutor(),
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                onPhotoCaptured(photoFile.absolutePath)
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    // Show Toast message
+                    Toast.makeText(
+                        context,
+                        "✓ Photo saved successfully!\nPath: ${photoFile.absolutePath}",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    // Debug log
+                    android.util.Log.d("PhotoCapture", "Saved at: ${photoFile.absolutePath}")
+                    android.util.Log.d("PhotoCapture", "File size: ${photoFile.length()} bytes")
+                    android.util.Log.d("PhotoCapture", "File exists: ${photoFile.exists()}")
+
+                    // Navigate to detail screen
+                    onPhotoCaptured(photoFile.absolutePath)
+                }
             }
 
             override fun onError(exception: ImageCaptureException) {
-                exception.printStackTrace()
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        context,
+                        "✗ Error saving photo: ${exception.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    android.util.Log.e("PhotoCapture", "Error: ${exception.message}", exception)
+                }
             }
         }
     )
