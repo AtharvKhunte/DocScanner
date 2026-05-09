@@ -106,7 +106,11 @@ fun CameraScreen(
 
                     Button(
                         onClick = {
-                            capturePhoto(context, imageCaptureRef.value, onPhotoCaptured)
+                            android.util.Log.d("CameraScreen", "Capture button clicked")
+                            capturePhoto(context, imageCaptureRef.value) { imagePath ->
+                                android.util.Log.d("CameraScreen", "Calling onPhotoCaptured with: $imagePath")
+                                onPhotoCaptured(imagePath)
+                            }
                         }
                     ) {
                         Text("Capture")
@@ -147,21 +151,21 @@ fun CameraPreview(
             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
             cameraProviderFuture.addListener({
-                val cameraProvider = cameraProviderFuture.get()
-
-                val preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-                val imageCapture = ImageCapture.Builder()
-                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .build()
-
-                imageCaptureRef.value = imageCapture
-
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
                 try {
+                    val cameraProvider = cameraProviderFuture.get()
+
+                    val preview = Preview.Builder().build().also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+
+                    val imageCapture = ImageCapture.Builder()
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                        .build()
+
+                    imageCaptureRef.value = imageCapture
+
+                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
                     cameraProvider.unbindAll()
                     cameraProvider.bindToLifecycle(
                         lifecycleOwner,
@@ -169,8 +173,10 @@ fun CameraPreview(
                         preview,
                         imageCapture
                     )
+
+                    android.util.Log.d("CameraPreview", "Camera initialized successfully")
                 } catch (exc: Exception) {
-                    exc.printStackTrace()
+                    android.util.Log.e("CameraPreview", "Camera initialization error: ${exc.message}", exc)
                 }
             }, ContextCompat.getMainExecutor(ctx))
 
@@ -184,15 +190,26 @@ fun capturePhoto(
     imageCapture: ImageCapture?,
     onPhotoCaptured: (String) -> Unit
 ) {
-    if (imageCapture == null) return
+    android.util.Log.d("CapturePhoto", "capturePhoto called")
+
+    if (imageCapture == null) {
+        android.util.Log.e("CapturePhoto", "ImageCapture is null!")
+        Toast.makeText(context, "Camera error: ImageCapture is null", Toast.LENGTH_SHORT).show()
+        return
+    }
 
     val photoDir = File(context.getExternalFilesDir(null), "photos")
+    android.util.Log.d("CapturePhoto", "Photo directory: ${photoDir.absolutePath}")
+
     if (!photoDir.exists()) {
-        photoDir.mkdirs()
+        val created = photoDir.mkdirs()
+        android.util.Log.d("CapturePhoto", "Directory created: $created")
     }
 
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
     val photoFile = File(photoDir, "photo_$timeStamp.jpg")
+
+    android.util.Log.d("CapturePhoto", "Photo file path: ${photoFile.absolutePath}")
 
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
@@ -201,33 +218,50 @@ fun capturePhoto(
         Executors.newSingleThreadExecutor(),
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                android.util.Log.d("CapturePhoto", "Image saved callback triggered")
+
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    // Show Toast message
-                    Toast.makeText(
-                        context,
-                        "✓ Photo saved successfully!\nPath: ${photoFile.absolutePath}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    try {
+                        // Verify file exists and has content
+                        val fileExists = photoFile.exists()
+                        val fileSize = if (fileExists) photoFile.length() else 0
+                        val filePath = photoFile.absolutePath
 
-                    // Debug log
-                    android.util.Log.d("PhotoCapture", "Saved at: ${photoFile.absolutePath}")
-                    android.util.Log.d("PhotoCapture", "File size: ${photoFile.length()} bytes")
-                    android.util.Log.d("PhotoCapture", "File exists: ${photoFile.exists()}")
+                        android.util.Log.d("CapturePhoto", "File exists: $fileExists")
+                        android.util.Log.d("CapturePhoto", "File size: $fileSize bytes")
+                        android.util.Log.d("CapturePhoto", "File path: $filePath")
 
-                    // Navigate to detail screen
-                    onPhotoCaptured(photoFile.absolutePath)
+                        // Show Toast
+                        Toast.makeText(
+                            context,
+                            "✓ Photo saved!\nSize: ${fileSize / 1024}KB",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        // Call the callback
+                        android.util.Log.d("CapturePhoto", "Calling onPhotoCaptured callback")
+                        onPhotoCaptured(filePath)
+                        android.util.Log.d("CapturePhoto", "Callback called successfully")
+                    } catch (e: Exception) {
+                        android.util.Log.e("CapturePhoto", "Error in onImageSaved: ${e.message}", e)
+                        Toast.makeText(
+                            context,
+                            "Error: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             }
 
             override fun onError(exception: ImageCaptureException) {
+                android.util.Log.e("CapturePhoto", "Capture failed: ${exception.message}", exception)
+
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
                     Toast.makeText(
                         context,
-                        "✗ Error saving photo: ${exception.message}",
+                        "✗ Capture failed: ${exception.message}",
                         Toast.LENGTH_LONG
                     ).show()
-
-                    android.util.Log.e("PhotoCapture", "Error: ${exception.message}", exception)
                 }
             }
         }

@@ -1,34 +1,34 @@
 package com.example.documentscanner.ui.navigation
 
-import android.net.Uri // Required for encoding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost // Corrected import
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.documentscanner.ui.screens.CameraScreen
 import com.example.documentscanner.ui.screens.DetailScreen
 import com.example.documentscanner.ui.screens.HomeScreen
-
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Camera : Screen("camera")
-    object Detail : Screen("detail/{imagePath}") {
-        fun createRoute(imagePath: String) = "detail/${Uri.encode(imagePath)}"
-    }
+    object Detail : Screen("detail")
 }
 
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
-    val lastCapturedImage = remember { mutableStateOf("") }
+    val currentImagePath = remember { mutableStateOf("") }
 
     NavHost(navController = navController, startDestination = Screen.Home.route) {
         composable(Screen.Home.route) {
             HomeScreen(
                 onScanClick = {
+                    android.util.Log.d("NavGraph", "Home: Navigating to Camera")
                     navController.navigate(Screen.Camera.route)
                 }
             )
@@ -37,26 +37,30 @@ fun NavGraph() {
         composable(Screen.Camera.route) {
             CameraScreen(
                 onPhotoCaptured = { imagePath ->
-                    lastCapturedImage.value = imagePath
-                    navController.navigate(Screen.Detail.createRoute(imagePath))
+                    android.util.Log.d("NavGraph", "Camera: Photo captured at $imagePath")
+                    currentImagePath.value = imagePath
+                    android.util.Log.d("NavGraph", "Camera: Navigating to Detail")
+                    navController.navigate(Screen.Detail.route)
                 },
                 onCancel = {
+                    android.util.Log.d("NavGraph", "Camera: Cancel clicked")
                     navController.popBackStack()
                 }
             )
         }
 
-        composable(Screen.Detail.route) { backStackEntry ->
-            val imagePath = Uri.decode(backStackEntry.arguments?.getString("imagePath") ?: "")
+        composable(Screen.Detail.route) {
+            android.util.Log.d("NavGraph", "Detail: Displaying image: ${currentImagePath.value}")
             DetailScreen(
-                imagePath = imagePath,
+                imagePath = currentImagePath.value,
                 onSave = {
-                    // For Week 1, just go back to home
+                    android.util.Log.d("NavGraph", "Detail: Save clicked")
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 },
                 onRetake = {
+                    android.util.Log.d("NavGraph", "Detail: Retake clicked")
                     navController.popBackStack()
                 }
             )
