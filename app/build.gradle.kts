@@ -80,6 +80,10 @@ dependencies {
     // Tink (Additional encryption)
     implementation("com.google.crypto.tink:tink-android:1.10.0")
 
+    // Coroutines (for Flow and suspend)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
