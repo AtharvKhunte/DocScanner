@@ -75,6 +75,7 @@ dependencies {
 
     // SQLCipher (Encryption for database)
     implementation("net.zetetic:android-database-sqlcipher:4.5.4")
+    implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 
     // Tink (Additional encryption)
     implementation("com.google.crypto.tink:tink-android:1.10.0")
