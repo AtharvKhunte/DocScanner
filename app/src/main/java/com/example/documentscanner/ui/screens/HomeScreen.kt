@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -16,7 +17,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -28,7 +28,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Document Scanner") }
+                title = { Text("DocVault") }
             )
         }
     ) { paddingValues ->
@@ -40,38 +40,29 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Welcome Text
-            Text(
-                text = "📱 Document Scanner",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text("🔐 DocVault", fontSize = 24.sp)
+            Text("Your Private Document Vault", fontSize = 14.sp)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = "Scan, extract, and organize documents",
-                fontSize = 14.sp
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            // Scan New Document Button
             Button(
                 onClick = onScanClick,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
             ) {
-                Text("📷 Scan New Document")
+                Text("📸 Scan Document")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // View Documents Button
             Button(
                 onClick = onViewDocumentsClick,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
             ) {
-                Text("📚 View My Documents")
+                Text("🔐 My Vault")
             }
         }
     }

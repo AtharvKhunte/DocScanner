@@ -218,6 +218,7 @@ private fun DocumentsList(
     }
 }
 
+
 @Composable
 private fun DocumentListItem(
     document: ScannedDocument,

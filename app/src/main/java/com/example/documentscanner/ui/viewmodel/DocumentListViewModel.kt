@@ -47,7 +47,7 @@ class DocumentListViewModel(
         }
     }
 }
-
+    
 /**
  * Factory for creating DocumentListViewModel with dependencies
  */
