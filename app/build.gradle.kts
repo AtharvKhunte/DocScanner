@@ -61,6 +61,7 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.3.0")
     implementation("androidx.camera:camera-lifecycle:1.3.0")
     implementation("androidx.camera:camera-view:1.3.0")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.coil.compose)
     // Permissions (for camera permission handling)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
@@ -69,9 +70,11 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.0")
 
     // Room Database (for Week 2)
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.compose.foundation.layout.android)
+    kapt("androidx.room:room-compiler:2.7.0")
 
     // SQLCipher (Encryption for database)
     implementation("net.zetetic:android-database-sqlcipher:4.5.4")
@@ -91,4 +94,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.0")
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.0")
+
+    implementation("dev.chrisbanes.haze:haze:0.4.1")
 }
