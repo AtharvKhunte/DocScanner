@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.documentscanner.ui.screens
 
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,13 +18,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.documentscanner.ui.components.GlassmorphicCard
 import com.example.documentscanner.ui.theme.DocVaultColors
 import com.example.documentscanner.ui.viewmodel.DocumentViewModel
 import com.example.documentscanner.ui.viewmodel.DocumentViewModelFactory
@@ -29,7 +36,6 @@ import com.example.documentscanner.ui.viewmodel.OCRState
 import com.example.documentscanner.ui.viewmodel.SaveState
 import java.io.File
 
-@ExperimentalMaterial3Api
 @Composable
 fun DetailScreen(
     imagePath: String,
@@ -59,24 +65,39 @@ fun DetailScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).background(DocVaultColors.DarkBackground)) {
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = DocVaultColors.DarkGlassAlpha,
-                contentColor = DocVaultColors.ElectricIndigo
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(DocVaultColors.DarkBackground)
+        ) {
+            // Glass Tab Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .background(DocVaultColors.WhiteGlassAlpha, RoundedCornerShape(12.dp))
+                    .padding(4.dp)
             ) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Document") })
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Extracted Text") })
+                GlassTabButton("Document", selectedTab == 0, Modifier.weight(1f)) { selectedTab = 0 }
+                GlassTabButton("Extracted Text", selectedTab == 1, Modifier.weight(1f)) { selectedTab = 1 }
             }
 
             Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 if (selectedTab == 0) {
-                    Image(
-                        painter = rememberAsyncImagePainter(Uri.parse("file://$imagePath")),
-                        contentDescription = "Document",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
+                    GlassmorphicCard(modifier = Modifier.fillMaxSize().padding(4.dp)) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(Uri.parse("file://$imagePath")),
+                                contentDescription = "Document",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                    }
                 } else {
                     ExtractedTextTab(ocrState, extractedText)
                 }
@@ -99,12 +120,37 @@ fun DetailScreen(
 }
 
 @Composable
+private fun GlassTabButton(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(9.dp))
+            .background(if (selected) DocVaultColors.ElectricIndigo else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            color = if (selected) Color.White else DocVaultColors.TextTertiary,
+            fontSize = 13.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
 private fun ExtractedTextTab(ocrState: OCRState, extractedText: String) {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
         when (ocrState) {
             is OCRState.Idle -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("No text extracted yet", color = DocVaultColors.TextSecondary, textAlign = TextAlign.Center)
             }
+
             is OCRState.Processing -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = DocVaultColors.ElectricIndigo)
@@ -112,15 +158,25 @@ private fun ExtractedTextTab(ocrState: OCRState, extractedText: String) {
                     Text("Extracting text...", color = DocVaultColors.TextSecondary)
                 }
             }
-            is OCRState.Success -> SelectionContainer(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(DocVaultColors.WhiteGlassAlpha, RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-                    .verticalScroll(rememberScrollState())
+
+            is OCRState.Success -> GlassmorphicCard(
+                modifier = Modifier.fillMaxSize()
             ) {
-                Text(extractedText, color = DocVaultColors.TextPrimary)
+                SelectionContainer(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        extractedText,
+                        color = DocVaultColors.TextPrimary,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp
+                    )
+                }
             }
+
             is OCRState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Error: ${ocrState.message}", color = DocVaultColors.Error, textAlign = TextAlign.Center)
             }
