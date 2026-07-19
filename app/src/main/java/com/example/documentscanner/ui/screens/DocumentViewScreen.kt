@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.documentscanner.data.entity.ScannedDocument
 import com.example.documentscanner.ui.components.GlassmorphicCard
 import com.example.documentscanner.ui.theme.DocVaultColors
+import com.example.documentscanner.utils.PdfExporter
+import com.example.documentscanner.utils.ShareUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,8 +42,9 @@ fun DocumentViewScreen(
     document: ScannedDocument,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
-    val context = androidx.compose.ui.platform.LocalContext.current
+    var showExportDialog by remember { mutableStateOf(false) }
     val dateStr = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(Date(document.dateCreated))
 
     Scaffold(
@@ -134,12 +138,7 @@ fun DocumentViewScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = {
-                        val pdfFile = com.example.documentscanner.utils.PdfExporter.exportToPdf(context, document)
-                        if (pdfFile != null) {
-                            com.example.documentscanner.utils.ShareUtils.sharePdf(context, pdfFile)
-                        }
-                    },
+                    onClick = { showExportDialog = true },
                     modifier = Modifier.weight(1f).height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = DocVaultColors.EmeraldVerified)
                 ) { Text("Export PDF") }
@@ -151,6 +150,32 @@ fun DocumentViewScreen(
                 ) { Text("Close") }
             }
         }
+    }
+
+    if (showExportDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportDialog = false },
+            title = { Text("Export PDF") },
+            text = { Text("Include the extracted text as a second page?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    val pdfFile = PdfExporter.exportToPdf(context, document, includeText = true)
+                    if (pdfFile != null) {
+                        ShareUtils.sharePdf(context, pdfFile)
+                    }
+                }) { Text("Image + Text") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    val pdfFile = PdfExporter.exportToPdf(context, document, includeText = false)
+                    if (pdfFile != null) {
+                        ShareUtils.sharePdf(context, pdfFile)
+                    }
+                }) { Text("Image Only") }
+            }
+        )
     }
 }
 

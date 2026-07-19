@@ -17,7 +17,7 @@ object PdfExporter {
     private const val PAGE_HEIGHT = 842
     private const val MARGIN = 40f
 
-    fun exportToPdf(context: Context, document: ScannedDocument): File? {
+    fun exportToPdf(context: Context, document: ScannedDocument, includeText: Boolean = true): File? {
         return try {
             val pdfDocument = PdfDocument()
 
@@ -49,7 +49,7 @@ object PdfExporter {
             pdfDocument.finishPage(imagePage)
 
             // ===== PAGE 2: EXTRACTED TEXT =====
-            if (document.extractedText.isNotEmpty()) {
+            if (includeText && document.extractedText.isNotEmpty()) {
                 val textPageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 2).create()
                 val textPage = pdfDocument.startPage(textPageInfo)
                 val textCanvas = textPage.canvas
