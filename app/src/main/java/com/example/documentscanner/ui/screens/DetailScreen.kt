@@ -7,13 +7,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.documentscanner.ui.components.GlassmorphicCard
 import com.example.documentscanner.ui.theme.DocVaultColors
 import com.example.documentscanner.ui.viewmodel.DocumentViewModel
 import com.example.documentscanner.ui.viewmodel.DocumentViewModelFactory
@@ -38,7 +36,7 @@ import java.io.File
 
 @Composable
 fun DetailScreen(
-    imagePath: String,
+    imagePaths: List<String>,
     onSave: () -> Unit,
     onRetake: () -> Unit
 ) {
@@ -48,16 +46,13 @@ fun DetailScreen(
     val saveState by viewModel.saveState.collectAsState()
     val extractedText by viewModel.extractedText.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+    var previewIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
         containerColor = DocVaultColors.DarkBackground,
         topBar = {
             TopAppBar(
-                title = { Text("Document Details") },
-                actions = {
-                    IconButton(onClick = { }) { Icon(Icons.Default.Edit, "Edit", tint = Color.White) }
-                    IconButton(onClick = { }) { Icon(Icons.Default.Delete, "Delete", tint = DocVaultColors.Error) }
-                },
+                title = { Text(if (imagePaths.size > 1) "Document (${imagePaths.size} pages)" else "Document Details") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = DocVaultColors.DarkBackground,
                     titleContentColor = Color.White
@@ -71,7 +66,6 @@ fun DetailScreen(
                 .padding(padding)
                 .background(DocVaultColors.DarkBackground)
         ) {
-            // Glass Tab Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,17 +79,47 @@ fun DetailScreen(
 
             Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 if (selectedTab == 0) {
-                    GlassmorphicCard(modifier = Modifier.fillMaxSize().padding(4.dp)) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                    Column(modifier = Modifier.fillMaxSize().padding(4.dp)) {
+                        com.example.documentscanner.ui.components.GlassmorphicCard(
+                            modifier = Modifier.fillMaxWidth().weight(1f)
                         ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(Uri.parse("file://$imagePath")),
-                                contentDescription = "Document",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(Uri.parse("file://${imagePaths[previewIndex]}")),
+                                    contentDescription = "Document",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
+
+                        if (imagePaths.size > 1) {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(imagePaths.size) { index ->
+                                    val isSelected = index == previewIndex
+                                    Box(
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(
+                                                if (isSelected) DocVaultColors.ElectricIndigo
+                                                else DocVaultColors.WhiteGlassAlpha
+                                            )
+                                            .clickable { previewIndex = index },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(Uri.parse("file://${imagePaths[index]}")),
+                                            contentDescription = "Page ${index + 1}",
+                                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 } else {
@@ -108,10 +132,10 @@ fun DetailScreen(
                 saveState = saveState,
                 extractedText = extractedText,
                 onRetake = onRetake,
-                onExtract = { viewModel.extractTextFromImage(imagePath) },
+                onExtract = { viewModel.extractTextFromImages(imagePaths) },
                 onSave = {
-                    val fileName = File(imagePath).name
-                    viewModel.saveDocument(fileName, imagePath, extractedText)
+                    val fileName = File(imagePaths.first()).name
+                    viewModel.saveDocument(fileName, imagePaths, extractedText)
                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ onSave() }, 800)
                 }
             )
@@ -159,7 +183,7 @@ private fun ExtractedTextTab(ocrState: OCRState, extractedText: String) {
                 }
             }
 
-            is OCRState.Success -> GlassmorphicCard(
+            is OCRState.Success -> com.example.documentscanner.ui.components.GlassmorphicCard(
                 modifier = Modifier.fillMaxSize()
             ) {
                 SelectionContainer(
@@ -168,12 +192,7 @@ private fun ExtractedTextTab(ocrState: OCRState, extractedText: String) {
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Text(
-                        extractedText,
-                        color = DocVaultColors.TextPrimary,
-                        fontSize = 14.sp,
-                        lineHeight = 22.sp
-                    )
+                    Text(extractedText, color = DocVaultColors.TextPrimary, fontSize = 14.sp, lineHeight = 22.sp)
                 }
             }
 

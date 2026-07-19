@@ -8,6 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.documentscanner.data.entity.ScannedDocument
+import com.example.documentscanner.data.entity.pageList
 import com.example.documentscanner.ui.components.GlassmorphicCard
 import com.example.documentscanner.ui.theme.DocVaultColors
 import com.example.documentscanner.utils.PdfExporter
@@ -44,8 +47,10 @@ fun DocumentViewScreen(
 ) {
     val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
+    var previewIndex by remember { mutableIntStateOf(0) }
     var showExportDialog by remember { mutableStateOf(false) }
     val dateStr = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(Date(document.dateCreated))
+    val pages = remember(document) { document.pageList() }
 
     Scaffold(
         containerColor = DocVaultColors.DarkBackground,
@@ -71,13 +76,12 @@ fun DocumentViewScreen(
                 .background(DocVaultColors.DarkBackground)
         ) {
             Text(
-                dateStr,
+                if (pages.size > 1) "$dateStr · ${pages.size} pages" else dateStr,
                 color = DocVaultColors.TextTertiary,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // Glass Tab Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -96,14 +100,45 @@ fun DocumentViewScreen(
                     .padding(12.dp)
             ) {
                 if (selectedTab == 0) {
-                    GlassmorphicCard(modifier = Modifier.fillMaxSize()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Image(
-                                painter = rememberAsyncImagePainter(Uri.parse("file://${document.filePath}")),
-                                contentDescription = "Document",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        GlassmorphicCard(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(Uri.parse("file://${pages[previewIndex]}")),
+                                    contentDescription = "Document",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
+
+                        if (pages.size > 1) {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(pages.size) { index ->
+                                    val isSelected = index == previewIndex
+                                    Box(
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(
+                                                if (isSelected) DocVaultColors.ElectricIndigo
+                                                else DocVaultColors.WhiteGlassAlpha
+                                            )
+                                            .clickable { previewIndex = index },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(Uri.parse("file://${pages[index]}")),
+                                            contentDescription = "Page ${index + 1}",
+                                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 } else {
@@ -156,23 +191,19 @@ fun DocumentViewScreen(
         AlertDialog(
             onDismissRequest = { showExportDialog = false },
             title = { Text("Export PDF") },
-            text = { Text("Include the extracted text as a second page?") },
+            text = { Text("Include the extracted text as a final page?") },
             confirmButton = {
                 TextButton(onClick = {
                     showExportDialog = false
                     val pdfFile = PdfExporter.exportToPdf(context, document, includeText = true)
-                    if (pdfFile != null) {
-                        ShareUtils.sharePdf(context, pdfFile)
-                    }
+                    if (pdfFile != null) ShareUtils.sharePdf(context, pdfFile)
                 }) { Text("Image + Text") }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showExportDialog = false
                     val pdfFile = PdfExporter.exportToPdf(context, document, includeText = false)
-                    if (pdfFile != null) {
-                        ShareUtils.sharePdf(context, pdfFile)
-                    }
+                    if (pdfFile != null) ShareUtils.sharePdf(context, pdfFile)
                 }) { Text("Image Only") }
             }
         )

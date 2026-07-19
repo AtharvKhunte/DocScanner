@@ -6,7 +6,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -18,6 +17,7 @@ import com.example.documentscanner.ui.screens.DocumentViewScreen
 import com.example.documentscanner.ui.screens.HomeScreen
 import com.example.documentscanner.ui.screens.LockScreen
 import com.example.documentscanner.ui.screens.SetupScreen
+import androidx.compose.ui.platform.LocalContext
 import com.example.documentscanner.utils.AppLockManager
 
 sealed class Screen(val route: String) {
@@ -34,7 +34,7 @@ sealed class Screen(val route: String) {
 fun NavGraph() {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val currentImagePath = remember { mutableStateOf("") }
+    val currentImagePaths = remember { mutableStateOf(listOf<String>()) }
     val selectedDocument = remember { mutableStateOf<ScannedDocument?>(null) }
 
     val startDestination = if (AppLockManager.isSetupComplete(context)) {
@@ -74,8 +74,8 @@ fun NavGraph() {
 
         composable(Screen.Camera.route) {
             CameraScreen(
-                onPhotoCaptured = { imagePath ->
-                    currentImagePath.value = imagePath
+                onScanComplete = { paths ->
+                    currentImagePaths.value = paths
                     navController.navigate(Screen.Detail.route)
                 },
                 onCancel = { navController.popBackStack() }
@@ -84,7 +84,7 @@ fun NavGraph() {
 
         composable(Screen.Detail.route) {
             DetailScreen(
-                imagePath = currentImagePath.value,
+                imagePaths = currentImagePaths.value,
                 onSave = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }

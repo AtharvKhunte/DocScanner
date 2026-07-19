@@ -1,6 +1,5 @@
 package com.example.documentscanner.utils
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import com.google.mlkit.vision.common.InputImage
@@ -19,31 +18,23 @@ class OCRProcessor {
     suspend fun extractTextFromImage(imagePath: String): String? {
         return suspendCancellableCoroutine { continuation ->
             try {
-                Log.d("OCRProcessor", "Starting OCR for: $imagePath")
-
                 val imageFile = File(imagePath)
                 if (!imageFile.exists()) {
-                    Log.e("OCRProcessor", "Image file not found: $imagePath")
                     continuation.resume(null)
                     return@suspendCancellableCoroutine
                 }
 
                 val bitmap = BitmapFactory.decodeFile(imagePath)
                 if (bitmap == null) {
-                    Log.e("OCRProcessor", "Failed to decode image")
                     continuation.resume(null)
                     return@suspendCancellableCoroutine
                 }
-
-                Log.d("OCRProcessor", "Image loaded: ${bitmap.width}x${bitmap.height}")
 
                 val inputImage = InputImage.fromBitmap(bitmap, 0)
 
                 textRecognizer.process(inputImage)
                     .addOnSuccessListener { visionText ->
                         try {
-                            Log.d("OCRProcessor", "OCR completed successfully")
-
                             var extractedText = ""
                             for (block in visionText.textBlocks) {
                                 for (line in block.lines) {
@@ -54,17 +45,9 @@ class OCRProcessor {
                                 }
                                 extractedText += "\n"
                             }
-
                             bitmap.recycle()
                             val finalText = extractedText.trim()
-
-                            if (finalText.isEmpty()) {
-                                Log.w("OCRProcessor", "No text found in image")
-                                continuation.resume(null)
-                            } else {
-                                Log.d("OCRProcessor", "Extracted: ${finalText.length} characters")
-                                continuation.resume(finalText)
-                            }
+                            continuation.resume(finalText.ifEmpty { null })
                         } catch (e: Exception) {
                             Log.e("OCRProcessor", "Error: ${e.message}", e)
                             bitmap.recycle()
@@ -76,11 +59,26 @@ class OCRProcessor {
                         bitmap.recycle()
                         continuation.resume(null)
                     }
-
             } catch (e: Exception) {
                 Log.e("OCRProcessor", "Exception: ${e.message}", e)
                 continuation.resume(null)
             }
         }
+    }
+
+    /**
+     * Runs OCR across multiple pages and combines the results,
+     * labeling each page when there's more than one.
+     */
+    suspend fun extractTextFromImages(imagePaths: List<String>): String {
+        val results = StringBuilder()
+        imagePaths.forEachIndexed { index, path ->
+            val text = extractTextFromImage(path)
+            if (!text.isNullOrEmpty()) {
+                if (imagePaths.size > 1) results.append("--- Page ${index + 1} ---\n")
+                results.append(text).append("\n\n")
+            }
+        }
+        return results.toString().trim()
     }
 }

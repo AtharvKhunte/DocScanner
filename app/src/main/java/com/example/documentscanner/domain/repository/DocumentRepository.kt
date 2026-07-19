@@ -4,88 +4,28 @@ import com.example.documentscanner.data.dao.DocumentDao
 import com.example.documentscanner.data.entity.ScannedDocument
 import kotlinx.coroutines.flow.Flow
 
-class DocumentRepository(private val documentDao: DocumentDao) {
+class DocumentRepository(private val dao: DocumentDao) {
 
-    // Get all documents as a reactive stream
-    fun getAllDocuments(): Flow<List<ScannedDocument>> {
-        return documentDao.getAllDocuments()
-    }
+    fun getAllDocuments(): Flow<List<ScannedDocument>> = dao.getAllDocuments()
 
-    // Get a single document by ID
-    suspend fun getDocumentById(documentId: Int): ScannedDocument? {
-        return documentDao.getDocumentById(documentId)
-    }
+    suspend fun getDocumentById(id: Int): ScannedDocument? = dao.getDocumentById(id)
 
-    // Save a new document
-    suspend fun saveDocument(document: ScannedDocument): Long {
-        android.util.Log.d("DocumentRepository", "Saving document: ${document.fileName}")
-        return documentDao.insertDocument(document)
-    }
-
-    // Save document with extracted text
-    suspend fun saveDocumentWithText(
-        fileName: String,
-        filePath: String,
-        extractedText: String
-    ): Long {
+    suspend fun saveDocumentWithText(fileName: String, filePaths: String, extractedText: String): Long {
         val document = ScannedDocument(
             fileName = fileName,
-            filePath = filePath,
-            extractedText = extractedText,
-            dateCreated = System.currentTimeMillis(),
-            dateModified = System.currentTimeMillis()
+            filePaths = filePaths,
+            extractedText = extractedText
         )
-        return saveDocument(document)
+        return dao.insertDocument(document)
     }
 
-    // Update extracted text (called after OCR)
-    suspend fun updateExtractedText(documentId: Int, text: String) {
-        android.util.Log.d("DocumentRepository", "Updating text for document $documentId")
-        documentDao.updateExtractedText(documentId, text)
-    }
+    suspend fun updateExtractedText(id: Int, text: String) = dao.updateExtractedText(id, text)
 
-    // Search documents by text
-    fun searchDocuments(query: String): Flow<List<ScannedDocument>> {
-        return if (query.isEmpty()) {
-            getAllDocuments()
-        } else {
-            documentDao.searchDocuments(query)
-        }
-    }
+    fun searchDocuments(query: String): Flow<List<ScannedDocument>> = dao.searchDocuments(query)
 
-    // Delete a document
-    suspend fun deleteDocument(documentId: Int) {
-        android.util.Log.d("DocumentRepository", "Deleting document $documentId")
-        documentDao.deleteDocument(documentId)
-    }
+    suspend fun deleteDocument(id: Int) = dao.deleteDocument(id)
 
-    // Get total document count
-    suspend fun getDocumentCount(): Int {
-        return documentDao.getDocumentCount()
-    }
+    suspend fun getDocumentCount(): Int = dao.getDocumentCount()
 
-    // Delete all documents
-    suspend fun deleteAllDocuments() {
-        android.util.Log.d("DocumentRepository", "Deleting all documents")
-        documentDao.deleteAllDocuments()
-    }
+    suspend fun deleteAllDocuments() = dao.deleteAllDocuments()
 }
-
-/*
-Repository Pattern Explained:
-
-Why use Repository?
-- Abstracts database implementation
-- Makes UI code cleaner
-- Easier to mock for testing
-- Single source of truth for data
-
-Usage in UI:
-Instead of: documentDao.insertDocument(...)
-Use: repository.saveDocument(...)
-
-Flow Benefits:
-- Reactive data binding
-- Automatic UI updates
-- No manual refresh needed
-*/

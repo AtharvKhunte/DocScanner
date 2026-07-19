@@ -9,136 +9,71 @@ import com.example.documentscanner.domain.repository.DocumentRepository
 import com.example.documentscanner.utils.OCRProcessor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 sealed class OCRState {
     object Idle : OCRState()
     object Processing : OCRState()
-    data class Success(val text: String) : OCRState()
+    object Success : OCRState()
     data class Error(val message: String) : OCRState()
 }
 
 sealed class SaveState {
     object Idle : SaveState()
     object Saving : SaveState()
-    data class Success(val documentId: Long) : SaveState()
+    data class Success(val documentId: Int) : SaveState()
     data class Error(val message: String) : SaveState()
 }
 
 class DocumentViewModel(
-    private val repository: DocumentRepository,
-    private val ocrProcessor: OCRProcessor
+    private val repository: DocumentRepository
 ) : ViewModel() {
 
+    private val ocrProcessor = OCRProcessor()
+
     private val _ocrState = MutableStateFlow<OCRState>(OCRState.Idle)
-    val ocrState: StateFlow<OCRState> = _ocrState
+    val ocrState: StateFlow<OCRState> = _ocrState.asStateFlow()
 
     private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
-    val saveState: StateFlow<SaveState> = _saveState
+    val saveState: StateFlow<SaveState> = _saveState.asStateFlow()
 
     private val _extractedText = MutableStateFlow("")
-    val extractedText: StateFlow<String> = _extractedText
+    val extractedText: StateFlow<String> = _extractedText.asStateFlow()
 
-    /**
-     * Extract text from image using ML Kit
-     */
-    fun extractTextFromImage(imagePath: String) {
+    fun extractTextFromImages(imagePaths: List<String>) {
         viewModelScope.launch {
             _ocrState.value = OCRState.Processing
-
             try {
-                android.util.Log.d("DocumentViewModel", "Starting OCR for: $imagePath")
-
-                val text = ocrProcessor.extractTextFromImage(imagePath)
-
-                if (text != null && text.isNotEmpty()) {
+                val text = ocrProcessor.extractTextFromImages(imagePaths)
+                if (text.isNotEmpty()) {
                     _extractedText.value = text
-                    _ocrState.value = OCRState.Success(text)
-                    android.util.Log.d("DocumentViewModel", "OCR success: ${text.length} characters")
+                    _ocrState.value = OCRState.Success
                 } else {
-                    _ocrState.value = OCRState.Error("No text found in image")
-                    android.util.Log.w("DocumentViewModel", "No text found in image")
+                    _ocrState.value = OCRState.Error("No text found")
                 }
             } catch (e: Exception) {
-                val errorMsg = "OCR failed: ${e.message}"
-                _ocrState.value = OCRState.Error(errorMsg)
-                android.util.Log.e("DocumentViewModel", errorMsg, e)
+                _ocrState.value = OCRState.Error(e.message ?: "OCR failed")
             }
         }
     }
 
-    /**
-     * Save document to database with extracted text
-     */
-    fun saveDocument(
-        fileName: String,
-        filePath: String,
-        extractedText: String
-    ) {
+    fun saveDocument(fileName: String, imagePaths: List<String>, extractedText: String) {
         viewModelScope.launch {
             _saveState.value = SaveState.Saving
-
             try {
-                android.util.Log.d("DocumentViewModel", "Saving document: $fileName")
-
-                val documentId = repository.saveDocumentWithText(
-                    fileName = fileName,
-                    filePath = filePath,
-                    extractedText = extractedText
+                val id = repository.saveDocumentWithText(
+                    fileName,
+                    imagePaths.joinToString(","),
+                    extractedText
                 )
-
-                _saveState.value = SaveState.Success(documentId)
-                android.util.Log.d("DocumentViewModel", "Document saved with ID: $documentId")
+                _saveState.value = SaveState.Success(id.toInt())
             } catch (e: Exception) {
-                val errorMsg = "Failed to save: ${e.message}"
-                _saveState.value = SaveState.Error(errorMsg)
-                android.util.Log.e("DocumentViewModel", errorMsg, e)
+                _saveState.value = SaveState.Error(e.message ?: "Save failed")
             }
         }
     }
 
-    /**
-     * Quick save: Extract text and save in one call
-     */
-    fun extractAndSaveDocument(
-        fileName: String,
-        filePath: String
-    ) {
-        viewModelScope.launch {
-            _ocrState.value = OCRState.Processing
-            _saveState.value = SaveState.Saving
-
-            try {
-                // Step 1: Extract text
-                android.util.Log.d("DocumentViewModel", "Extract and save: $fileName")
-
-                val text = ocrProcessor.extractTextFromImage(filePath)
-                    ?: throw Exception("OCR returned no text")
-
-                _extractedText.value = text
-                _ocrState.value = OCRState.Success(text)
-
-                // Step 2: Save to database
-                val documentId = repository.saveDocumentWithText(
-                    fileName = fileName,
-                    filePath = filePath,
-                    extractedText = text
-                )
-
-                _saveState.value = SaveState.Success(documentId)
-                android.util.Log.d("DocumentViewModel", "Extract and save complete: ID $documentId")
-            } catch (e: Exception) {
-                val errorMsg = "Failed: ${e.message}"
-                _ocrState.value = OCRState.Error(errorMsg)
-                _saveState.value = SaveState.Error(errorMsg)
-                android.util.Log.e("DocumentViewModel", errorMsg, e)
-            }
-        }
-    }
-
-    /**
-     * Reset states
-     */
     fun resetStates() {
         _ocrState.value = OCRState.Idle
         _saveState.value = SaveState.Idle
@@ -146,44 +81,14 @@ class DocumentViewModel(
     }
 }
 
-/**
- * Factory for creating DocumentViewModel with dependencies
- */
-class DocumentViewModelFactory(
-    private val context: Context
-) : ViewModelProvider.Factory {
+class DocumentViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DocumentViewModel::class.java)) {
             val database = DocumentDatabase.getInstance(context)
             val repository = DocumentRepository(database.documentDao())
-            val ocrProcessor = OCRProcessor()
-
-            @Suppress("UNCHECKED_CAST")
-            return DocumentViewModel(repository, ocrProcessor) as T
+            return DocumentViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-
-/*
-ViewModel Explained:
-
-States:
-- OCRState: Idle → Processing → Success/Error
-- SaveState: Idle → Saving → Success/Error
-
-Methods:
-- extractTextFromImage(): Run OCR only
-- saveDocument(): Save with existing text
-- extractAndSaveDocument(): OCR + Save in one call
-
-Flow Benefits:
-- StateFlow: UI observes state changes
-- viewModelScope: Cancels coroutines on clear
-- Automatic UI updates via collectAsState
-
-Factory Pattern:
-- Creates ViewModel with dependencies
-- Handles database initialization
-- Provides OcrProcessor and Repository
-*/

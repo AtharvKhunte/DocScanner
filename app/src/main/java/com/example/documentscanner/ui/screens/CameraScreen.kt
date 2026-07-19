@@ -38,16 +38,16 @@ import java.util.concurrent.Executors
 
 @Composable
 fun CameraScreen(
-    onPhotoCaptured: (String) -> Unit,
+    onScanComplete: (List<String>) -> Unit,
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var flashEnabled by remember { mutableStateOf(false) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var capturedPages by remember { mutableStateOf(listOf<String>()) }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
-    // ===== CAMERA PERMISSION HANDLING =====
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
@@ -68,7 +68,7 @@ fun CameraScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Scan Document") },
+                title = { Text(if (capturedPages.isEmpty()) "Scan Document" else "Page ${capturedPages.size + 1}") },
                 navigationIcon = {
                     IconButton(onClick = onCancel) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
@@ -88,17 +88,12 @@ fun CameraScreen(
                 .background(DocVaultColors.DarkBackground)
         ) {
             if (!hasCameraPermission) {
-                // ===== PERMISSION NOT GRANTED STATE =====
                 Column(
                     modifier = Modifier.fillMaxSize().padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        "Camera Permission Required",
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Text("Camera Permission Required", color = Color.White, style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "DocVault needs camera access to scan documents",
@@ -109,12 +104,9 @@ fun CameraScreen(
                     Button(
                         onClick = { permissionLauncher.launch(android.Manifest.permission.CAMERA) },
                         colors = ButtonDefaults.buttonColors(containerColor = DocVaultColors.ElectricIndigo)
-                    ) {
-                        Text("Grant Permission")
-                    }
+                    ) { Text("Grant Permission") }
                 }
             } else {
-                // ===== CAMERA PREVIEW =====
                 AndroidView(
                     factory = { ctx -> PreviewView(ctx).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } },
                     modifier = Modifier.fillMaxSize(),
@@ -163,15 +155,38 @@ fun CameraScreen(
                             )
                         }
                     }
+
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Button(
-                            onClick = { capturePhoto(context, imageCapture, cameraExecutor, onPhotoCaptured) },
+                            onClick = {
+                                capturePhoto(context, imageCapture, cameraExecutor) { path ->
+                                    capturedPages = capturedPages + path
+                                }
+                            },
                             modifier = Modifier.size(64.dp),
                             shape = CircleShape,
                             colors = ButtonDefaults.buttonColors(containerColor = DocVaultColors.EmeraldVerified),
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Box(modifier = Modifier.size(24.dp).background(Color.White, CircleShape))
+                        }
+                    }
+
+                    if (capturedPages.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "${capturedPages.size} page${if (capturedPages.size > 1) "s" else ""} captured",
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Button(
+                                onClick = { onScanComplete(capturedPages) },
+                                colors = ButtonDefaults.buttonColors(containerColor = DocVaultColors.ElectricIndigo)
+                            ) { Text("Done") }
                         }
                     }
                 }
@@ -205,19 +220,19 @@ private fun capturePhoto(
     context: android.content.Context,
     imageCapture: ImageCapture?,
     executor: java.util.concurrent.Executor,
-    onPhotoCaptured: (String) -> Unit
+    onCaptured: (String) -> Unit
 ) {
     if (imageCapture == null) return
     val photoDir = File(context.getExternalFilesDir(null), "photos")
-    if (!photoDir.exists()) photoDir.mkdirs()   
-    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(java.util.Date())
+    if (!photoDir.exists()) photoDir.mkdirs()
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(java.util.Date())
     val photoFile = File(photoDir, "IMG_$timeStamp.jpg")
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
     imageCapture.takePicture(outputOptions, executor, object : ImageCapture.OnImageSavedCallback {
         override fun onImageSaved(output: ImageCapture.OutputFileResults) {
             android.os.Handler(android.os.Looper.getMainLooper()).post {
-                onPhotoCaptured(photoFile.absolutePath)
+                onCaptured(photoFile.absolutePath)
             }
         }
         override fun onError(exc: ImageCaptureException) {

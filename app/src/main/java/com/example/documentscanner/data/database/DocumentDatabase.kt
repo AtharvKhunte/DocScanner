@@ -11,7 +11,7 @@ import net.sqlcipher.database.SupportFactory
 
 @Database(
     entities = [ScannedDocument::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class DocumentDatabase : RoomDatabase() {
@@ -29,9 +29,6 @@ abstract class DocumentDatabase : RoomDatabase() {
         }
 
         private fun createDatabase(context: Context): DocumentDatabase {
-            // Passphrase is generated once, then encrypted with an
-            // Android Keystore-backed AES key. The raw passphrase
-            // never lives in source code or unencrypted storage.
             val passphrase = KeystoreManager.getOrCreateDatabasePassphrase(context)
             val factory = SupportFactory(passphrase)
 
@@ -40,35 +37,9 @@ abstract class DocumentDatabase : RoomDatabase() {
                 DocumentDatabase::class.java,
                 "document_scanner.db"
             )
-                .openHelperFactory(factory)  // SQLCipher encryption
+                .openHelperFactory(factory)
+                .fallbackToDestructiveMigration()
                 .build()
         }
     }
 }
-
-/*
-Database Configuration Explained:
-
-@Database:
-- Specifies which entities exist (ScannedDocument)
-- version = 1 (increment if schema changes)
-- exportSchema = false (schema not exported to JSON)
-
-getInstance():
-- Singleton pattern (only one database instance)
-- Thread-safe (synchronized)
-- Creates on first access
-
-createDatabase():
-- Uses SQLCipher for encryption
-- Passphrase is randomly generated per install, then encrypted
-  with an Android Keystore AES key (KeystoreManager.kt)
-- File: document_scanner.db
-
-Encryption:
-- SQLCipher encrypts entire database
-- Passphrase prevents unauthorized access
-- Only readable by your app
-- Passphrase itself is protected by hardware-backed Keystore,
-  not hardcoded in source
-*/

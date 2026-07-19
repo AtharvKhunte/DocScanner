@@ -1,56 +1,58 @@
 package com.example.documentscanner.utils
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
 import android.graphics.RectF
+import android.graphics.pdf.PdfDocument
 import com.example.documentscanner.data.entity.ScannedDocument
+import com.example.documentscanner.data.entity.pageList
 import java.io.File
 import java.io.FileOutputStream
 
 object PdfExporter {
 
-    private const val PAGE_WIDTH = 595  // A4 at 72dpi
+    private const val PAGE_WIDTH = 595
     private const val PAGE_HEIGHT = 842
     private const val MARGIN = 40f
 
     fun exportToPdf(context: Context, document: ScannedDocument, includeText: Boolean = true): File? {
         return try {
             val pdfDocument = PdfDocument()
+            val pages = document.pageList()
 
-            // ===== PAGE 1: IMAGE =====
-            val imagePageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 1).create()
-            val imagePage = pdfDocument.startPage(imagePageInfo)
-            val imageCanvas = imagePage.canvas
+            // ===== ONE PAGE PER IMAGE =====
+            pages.forEachIndexed { index, imagePath ->
+                val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, index + 1).create()
+                val page = pdfDocument.startPage(pageInfo)
+                val canvas = page.canvas
 
-            val bitmap = BitmapFactory.decodeFile(document.filePath)
-            if (bitmap != null) {
-                val availableWidth = PAGE_WIDTH - (MARGIN * 2)
-                val availableHeight = PAGE_HEIGHT - (MARGIN * 2)
+                val bitmap = BitmapFactory.decodeFile(imagePath)
+                if (bitmap != null) {
+                    val availableWidth = PAGE_WIDTH - (MARGIN * 2)
+                    val availableHeight = PAGE_HEIGHT - (MARGIN * 2)
 
-                val scale = minOf(
-                    availableWidth / bitmap.width,
-                    availableHeight / bitmap.height
-                )
-                val scaledWidth = bitmap.width * scale
-                val scaledHeight = bitmap.height * scale
+                    val scale = minOf(
+                        availableWidth / bitmap.width,
+                        availableHeight / bitmap.height
+                    )
+                    val scaledWidth = bitmap.width * scale
+                    val scaledHeight = bitmap.height * scale
 
-                val left = (PAGE_WIDTH - scaledWidth) / 2
-                val top = (PAGE_HEIGHT - scaledHeight) / 2
+                    val left = (PAGE_WIDTH - scaledWidth) / 2
+                    val top = (PAGE_HEIGHT - scaledHeight) / 2
 
-                val destRect = RectF(left, top, left + scaledWidth, top + scaledHeight)
-                imageCanvas.drawBitmap(bitmap, null, destRect, Paint(Paint.ANTI_ALIAS_FLAG))
-                bitmap.recycle()
+                    val destRect = RectF(left, top, left + scaledWidth, top + scaledHeight)
+                    canvas.drawBitmap(bitmap, null, destRect, Paint(Paint.ANTI_ALIAS_FLAG))
+                    bitmap.recycle()
+                }
+
+                pdfDocument.finishPage(page)
             }
 
-            pdfDocument.finishPage(imagePage)
-
-            // ===== PAGE 2: EXTRACTED TEXT =====
+            // ===== FINAL PAGE: EXTRACTED TEXT =====
             if (includeText && document.extractedText.isNotEmpty()) {
-                val textPageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 2).create()
+                val textPageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pages.size + 1).create()
                 val textPage = pdfDocument.startPage(textPageInfo)
                 val textCanvas = textPage.canvas
 
@@ -72,7 +74,7 @@ object PdfExporter {
                 val lines = wrapText(document.extractedText, bodyPaint, maxWidth)
 
                 for (line in lines) {
-                    if (yPosition > PAGE_HEIGHT - MARGIN) break // avoid overflow (simple single-page cap)
+                    if (yPosition > PAGE_HEIGHT - MARGIN) break
                     textCanvas.drawText(line, MARGIN, yPosition, bodyPaint)
                     yPosition += 16f
                 }
@@ -80,16 +82,13 @@ object PdfExporter {
                 pdfDocument.finishPage(textPage)
             }
 
-            // ===== SAVE TO FILE =====
             val exportDir = File(context.getExternalFilesDir(null), "exports")
             if (!exportDir.exists()) exportDir.mkdirs()
 
             val safeFileName = document.fileName.substringBeforeLast(".").ifEmpty { "document" }
             val outputFile = File(exportDir, "$safeFileName.pdf")
 
-            FileOutputStream(outputFile).use { out ->
-                pdfDocument.writeTo(out)
-            }
+            FileOutputStream(outputFile).use { out -> pdfDocument.writeTo(out) }
             pdfDocument.close()
 
             outputFile
@@ -99,9 +98,6 @@ object PdfExporter {
         }
     }
 
-    /**
-     * Simple word-wrap for canvas text drawing.
-     */
     private fun wrapText(text: String, paint: Paint, maxWidth: Float): List<String> {
         val lines = mutableListOf<String>()
         val paragraphs = text.split("\n")
