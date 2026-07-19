@@ -40,6 +40,7 @@ fun DocumentViewScreen(
     onBack: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val dateStr = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(Date(document.dateCreated))
 
     Scaffold(
@@ -126,14 +127,29 @@ fun DocumentViewScreen(
                 }
             }
 
-            Button(
-                onClick = onBack,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DocVaultColors.ElectricIndigo)
-            ) { Text("Close") }
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        val pdfFile = com.example.documentscanner.utils.PdfExporter.exportToPdf(context, document)
+                        if (pdfFile != null) {
+                            com.example.documentscanner.utils.ShareUtils.sharePdf(context, pdfFile)
+                        }
+                    },
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DocVaultColors.EmeraldVerified)
+                ) { Text("Export PDF") }
+
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DocVaultColors.ElectricIndigo)
+                ) { Text("Close") }
+            }
         }
     }
 }

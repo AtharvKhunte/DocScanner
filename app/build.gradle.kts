@@ -96,4 +96,5 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.0")
 
     implementation("dev.chrisbanes.haze:haze:0.4.1")
+    implementation("androidx.biometric:biometric:1.1.0")
 }

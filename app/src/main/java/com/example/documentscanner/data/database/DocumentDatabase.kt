@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.documentscanner.data.dao.DocumentDao
 import com.example.documentscanner.data.entity.ScannedDocument
+import com.example.documentscanner.utils.KeystoreManager
 import net.sqlcipher.database.SupportFactory
 
 @Database(
@@ -28,8 +29,10 @@ abstract class DocumentDatabase : RoomDatabase() {
         }
 
         private fun createDatabase(context: Context): DocumentDatabase {
-            // Create encrypted database using SQLCipher
-            val passphrase = "DocumentScannerSecureKey123".toByteArray()
+            // Passphrase is generated once, then encrypted with an
+            // Android Keystore-backed AES key. The raw passphrase
+            // never lives in source code or unencrypted storage.
+            val passphrase = KeystoreManager.getOrCreateDatabasePassphrase(context)
             val factory = SupportFactory(passphrase)
 
             return Room.databaseBuilder(
@@ -58,11 +61,14 @@ getInstance():
 
 createDatabase():
 - Uses SQLCipher for encryption
-- Passphrase protects the database
+- Passphrase is randomly generated per install, then encrypted
+  with an Android Keystore AES key (KeystoreManager.kt)
 - File: document_scanner.db
 
 Encryption:
 - SQLCipher encrypts entire database
 - Passphrase prevents unauthorized access
 - Only readable by your app
+- Passphrase itself is protected by hardware-backed Keystore,
+  not hardcoded in source
 */

@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -15,8 +16,13 @@ import com.example.documentscanner.ui.screens.DetailScreen
 import com.example.documentscanner.ui.screens.DocumentListScreen
 import com.example.documentscanner.ui.screens.DocumentViewScreen
 import com.example.documentscanner.ui.screens.HomeScreen
+import com.example.documentscanner.ui.screens.LockScreen
+import com.example.documentscanner.ui.screens.SetupScreen
+import com.example.documentscanner.utils.AppLockManager
 
 sealed class Screen(val route: String) {
+    object Setup : Screen("setup")
+    object Lock : Screen("lock")
     object Home : Screen("home")
     object Camera : Screen("camera")
     object Detail : Screen("detail")
@@ -27,10 +33,38 @@ sealed class Screen(val route: String) {
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
+    val context = LocalContext.current
     val currentImagePath = remember { mutableStateOf("") }
     val selectedDocument = remember { mutableStateOf<ScannedDocument?>(null) }
 
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
+    val startDestination = if (AppLockManager.isSetupComplete(context)) {
+        Screen.Lock.route
+    } else {
+        Screen.Setup.route
+    }
+
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(Screen.Setup.route) {
+            SetupScreen(
+                onSetupComplete = {
+                    AppLockManager.markSetupComplete(context)
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Setup.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Lock.route) {
+            LockScreen(
+                onUnlocked = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Lock.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Home.route) {
             HomeScreen(
                 onScanClick = { navController.navigate(Screen.Camera.route) },
