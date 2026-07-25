@@ -28,4 +28,5 @@ class DocumentRepository(private val dao: DocumentDao) {
     suspend fun getDocumentCount(): Int = dao.getDocumentCount()
 
     suspend fun deleteAllDocuments() = dao.deleteAllDocuments()
+    suspend fun renameDocument(id: Int, newName: String) = dao.renameDocument(id, newName)
 }

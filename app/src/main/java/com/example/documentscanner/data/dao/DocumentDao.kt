@@ -34,4 +34,7 @@ interface DocumentDao {
 
     @Query("DELETE FROM scanned_documents")
     suspend fun deleteAllDocuments()
+    @Query("UPDATE scanned_documents SET fileName = :newName, dateModified = :modifiedAt WHERE id = :id")
+    suspend fun renameDocument(id: Int, newName: String, modifiedAt: Long = System.currentTimeMillis())
+
 }

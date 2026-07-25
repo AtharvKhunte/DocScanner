@@ -19,6 +19,17 @@ class DocumentListViewModel(
     private val repository: DocumentRepository
 ) : ViewModel() {
 
+
+    fun renameDocument(id: Int, newName: String) {
+        viewModelScope.launch {
+            try {
+                repository.renameDocument(id, newName)
+            } catch (e: Exception) {
+                android.util.Log.e("DocumentListViewModel", "Rename failed: ${e.message}", e)
+            }
+        }
+    }
+
     // Convert Flow to StateFlow using stateIn
     val documents: StateFlow<List<ScannedDocument>> =
         repository.getAllDocuments()
