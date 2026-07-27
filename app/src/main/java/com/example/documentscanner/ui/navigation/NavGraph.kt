@@ -1,11 +1,9 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.documentscanner.ui.navigation
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -14,10 +12,10 @@ import com.example.documentscanner.ui.screens.CameraScreen
 import com.example.documentscanner.ui.screens.DetailScreen
 import com.example.documentscanner.ui.screens.DocumentListScreen
 import com.example.documentscanner.ui.screens.DocumentViewScreen
+import com.example.documentscanner.ui.screens.ExportsScreen
 import com.example.documentscanner.ui.screens.HomeScreen
 import com.example.documentscanner.ui.screens.LockScreen
 import com.example.documentscanner.ui.screens.SetupScreen
-import androidx.compose.ui.platform.LocalContext
 import com.example.documentscanner.utils.AppLockManager
 
 sealed class Screen(val route: String) {
@@ -28,6 +26,7 @@ sealed class Screen(val route: String) {
     object Detail : Screen("detail")
     object DocumentList : Screen("document_list")
     object DocumentView : Screen("document_view")
+    object Exports : Screen("exports")
 }
 
 @Composable
@@ -44,6 +43,7 @@ fun NavGraph() {
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
+
         composable(Screen.Setup.route) {
             SetupScreen(
                 onSetupComplete = {
@@ -68,7 +68,8 @@ fun NavGraph() {
         composable(Screen.Home.route) {
             HomeScreen(
                 onScanClick = { navController.navigate(Screen.Camera.route) },
-                onViewVaultClick = { navController.navigate(Screen.DocumentList.route) }
+                onViewVaultClick = { navController.navigate(Screen.DocumentList.route) },
+                onViewExportsClick = { navController.navigate(Screen.Exports.route) }
             )
         }
 
@@ -111,6 +112,12 @@ fun NavGraph() {
                     onBack = { navController.popBackStack() }
                 )
             }
+        }
+
+        composable(Screen.Exports.route) {
+            ExportsScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }
