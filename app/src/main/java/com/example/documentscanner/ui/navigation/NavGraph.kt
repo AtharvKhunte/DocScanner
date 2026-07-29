@@ -15,8 +15,10 @@ import com.example.documentscanner.ui.screens.DocumentViewScreen
 import com.example.documentscanner.ui.screens.ExportsScreen
 import com.example.documentscanner.ui.screens.HomeScreen
 import com.example.documentscanner.ui.screens.LockScreen
+import com.example.documentscanner.ui.screens.SettingsScreen
 import com.example.documentscanner.ui.screens.SetupScreen
 import com.example.documentscanner.utils.AppLockManager
+import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
     object Setup : Screen("setup")
@@ -27,6 +29,8 @@ sealed class Screen(val route: String) {
     object DocumentList : Screen("document_list")
     object DocumentView : Screen("document_view")
     object Exports : Screen("exports")
+
+    object Settings : Screen("settings")
 }
 
 @Composable
@@ -69,7 +73,8 @@ fun NavGraph() {
             HomeScreen(
                 onScanClick = { navController.navigate(Screen.Camera.route) },
                 onViewVaultClick = { navController.navigate(Screen.DocumentList.route) },
-                onViewExportsClick = { navController.navigate(Screen.Exports.route) }
+                onViewExportsClick = { navController.navigate(Screen.Exports.route) },
+                onSettingsClick = { navController.navigate(Screen.Settings.route) }
             )
         }
 
@@ -119,5 +124,21 @@ fun NavGraph() {
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onDeleteAllDocuments = {
+                    // Need a shared ViewModel or direct DB call here
+                    val db = com.example.documentscanner.data.database.DocumentDatabase.getInstance(context)
+                    val repo = com.example.documentscanner.domain.repository.DocumentRepository(db.documentDao())
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                        repo.deleteAllDocuments()
+                    }
+                    navController.popBackStack()
+                }
+            )
+        }
+
     }
 }

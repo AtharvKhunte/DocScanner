@@ -20,6 +20,17 @@ class DocumentListViewModel(
 ) : ViewModel() {
 
 
+    fun deleteAllDocuments() {
+        viewModelScope.launch {
+            try {
+                repository.deleteAllDocuments()
+            } catch (e: Exception) {
+                android.util.Log.e("DocumentListViewModel", "Delete all failed: ${e.message}", e)
+            }
+        }
+    }
+
+
     fun renameDocument(id: Int, newName: String) {
         viewModelScope.launch {
             try {
