@@ -39,7 +39,7 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { onSettingsClick() }) {
+                    IconButton(onClick = onSettingsClick) {
                         Icon(
                             Icons.Default.Settings,
                             contentDescription = "Settings",
@@ -51,46 +51,6 @@ fun HomeScreen(
                     containerColor = DocVaultColors.DarkBackground
                 )
             )
-        },
-        bottomBar = {
-            BottomAppBar(
-                containerColor = DocVaultColors.DarkBackground,
-                tonalElevation = 0.dp
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Home tab (active)
-                    IconButton(onClick = { }) {
-                        Icon(
-                            Icons.Default.Shield,
-                            contentDescription = "Home",
-                            tint = DocVaultColors.ElectricIndigo,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    // Vault tab
-                    IconButton(onClick = onViewVaultClick) {
-                        Icon(
-                            Icons.Default.Shield,
-                            contentDescription = "Vault",
-                            tint = DocVaultColors.TextTertiary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    // Settings tab
-                    IconButton(onClick = { }) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = DocVaultColors.TextTertiary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
         }
     ) { paddingValues ->
         Column(
@@ -102,15 +62,14 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // ── Hero Section ─────────────────────────────────────
+            // ── Hero ─────────────────────────────────────────────
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                // Shield Icon
                 Box(
                     modifier = Modifier
                         .size(96.dp)
@@ -122,43 +81,39 @@ fun HomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Shield,
-                        contentDescription = "DocVault Shield",
+                        contentDescription = "DocVault",
                         tint = DocVaultColors.ElectricIndigo,
                         modifier = Modifier.size(52.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(Modifier.height(24.dp))
 
-                // App Title
                 Text(
-                    text = "DocVault",
+                    "DocVault",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = DocVaultColors.TextPrimary,
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
-                // Subtitle
                 Text(
-                    text = "100% Offline. Encrypted. Private.",
+                    "100% Offline. Encrypted. Private.",
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal,
                     color = DocVaultColors.TextSecondary,
                     textAlign = TextAlign.Center
                 )
             }
 
-            // ── Action Buttons ───────────────────────────────────
+            // ── Scan Button ──────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Primary: Scan Document
                 Button(
                     onClick = onScanClick,
                     modifier = Modifier
@@ -170,72 +125,17 @@ fun HomeScreen(
                         contentColor = Color.White
                     )
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Shield,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Scan Document",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-
-                // Secondary Row: My Vault + My Exports
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // My Vault
-                    Button(
-                        onClick = onViewVaultClick,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(52.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = DocVaultColors.CardSurface,
-                            contentColor = DocVaultColors.TextPrimary
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp, DocVaultColors.Border
-                        )
-                    ) {
-                        Text(
-                            "My Vault",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-
-                    // My Exports
-                    Button(
-                        onClick = onViewExportsClick,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(52.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = DocVaultColors.CardSurface,
-                            contentColor = DocVaultColors.TextPrimary
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp, DocVaultColors.Border
-                        )
-                    ) {
-                        Text(
-                            "My Exports",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    Icon(
+                        Icons.Default.Shield,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Scan Document",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }
