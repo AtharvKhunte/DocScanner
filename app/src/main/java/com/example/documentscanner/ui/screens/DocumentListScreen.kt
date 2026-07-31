@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -96,7 +98,7 @@ fun DocumentListScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = DocVaultColors.TextPrimary
                         )
@@ -106,7 +108,7 @@ fun DocumentListScreen(
                     Box {
                         IconButton(onClick = { showSortMenu = true }) {
                             Icon(
-                                Icons.Default.Sort,
+                                Icons.AutoMirrored.Filled.Sort,
                                 contentDescription = "Sort",
                                 tint = DocVaultColors.TextSecondary
                             )
