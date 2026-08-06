@@ -98,4 +98,6 @@ dependencies {
     implementation("dev.chrisbanes.haze:haze:0.4.1")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

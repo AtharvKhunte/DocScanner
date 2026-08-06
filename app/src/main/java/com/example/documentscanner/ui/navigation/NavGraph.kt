@@ -55,11 +55,7 @@ fun NavGraph() {
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute in bottomNavRoutes
 
-    val startDestination = if (AppLockManager.isSetupComplete(context)) {
-        Screen.Lock.route
-    } else {
-        Screen.Setup.route
-    }
+    val startDestination = Screen.Home.route
 
     Scaffold(
         bottomBar = {
@@ -101,7 +97,11 @@ fun NavGraph() {
                     onScanClick = { navController.navigate(Screen.Camera.route) },
                     onViewVaultClick = { navController.navigate(Screen.DocumentList.route) },
                     onViewExportsClick = { navController.navigate(Screen.Exports.route) },
-                    onSettingsClick = { navController.navigate(Screen.Settings.route) }
+                    onSettingsClick = { navController.navigate(Screen.Settings.route) },
+                    onDocumentClick = { document ->
+                        selectedDocument.value = document
+                        navController.navigate(Screen.DocumentView.route)
+                    }
                 )
             }
 
