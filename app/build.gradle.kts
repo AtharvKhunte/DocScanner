@@ -1,7 +1,11 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+
     kotlin("kapt")
 }
 
@@ -29,12 +33,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17) // Use JVM_11 or JVM_21 depending on your Java target
+        }
     }
+
     buildFeatures {
         compose = true
     }
@@ -74,6 +81,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.7.0")
     implementation(libs.androidx.ui)
     implementation(libs.androidx.compose.foundation.layout.android)
+    implementation(libs.googleid)
     kapt("androidx.room:room-compiler:2.7.0")
 
     // SQLCipher (Encryption for database)
@@ -100,4 +108,39 @@ dependencies {
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Supabase - stable version with known API
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:1.4.7")
+    implementation("io.github.jan-tennert.supabase:storage-kt:1.4.7")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:1.4.7")
+
+// Ktor engine
+    implementation("io.ktor:ktor-client-android:2.3.7")
+    implementation("io.ktor:ktor-client-core:2.3.7")
+    implementation("io.ktor:ktor-utils:2.3.7")
+
+// Kotlin serialization (needed by Supabase)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+// Credential Manager for passkeys
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+
+
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+// Supabase - stable versions
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:1.4.7")
+    implementation("io.github.jan-tennert.supabase:storage-kt:1.4.7")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:1.4.7")
+
+// Ktor
+    implementation("io.ktor:ktor-client-android:2.3.7")
+    implementation("io.ktor:ktor-client-core:2.3.7")
+
+// Kotlin serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+
+    implementation("io.github.jan-tennert.supabase:compose-auth:1.4.7")
 }

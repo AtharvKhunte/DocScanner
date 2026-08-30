@@ -11,13 +11,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -28,19 +34,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.documentscanner.R
 import com.example.documentscanner.data.entity.ScannedDocument
 import com.example.documentscanner.data.entity.pageList
-
 import com.example.documentscanner.ui.theme.DocVaultColors
 import com.example.documentscanner.ui.viewmodel.DocumentListViewModel
 import com.example.documentscanner.ui.viewmodel.DocumentListViewModelFactory
 import com.example.documentscanner.utils.ExportManager
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import com.example.documentscanner.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +61,6 @@ fun HomeScreen(
     )
     val documents by viewModel.documents.collectAsState()
 
-    // ── Derived stats ─────────────────────────────────────────────
     val totalDocs = documents.size
     val exports = remember(documents) { ExportManager.listExports(context) }
     val pdfCount = remember(exports) { exports.count { it.ispdf } }
@@ -115,7 +118,7 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ── Hero ─────────────────────────────────────────────
+
             // ── Hero ─────────────────────────────────────────────
             item {
                 Column(
@@ -125,23 +128,30 @@ fun HomeScreen(
                         .padding(top = 8.dp, bottom = 4.dp)
                 ) {
                     Image(
-                        painter = painterResource(id =R.drawable.icon_svg), // 👈 Replace with your drawable name
+                        painter = painterResource(id = R.drawable.icon_svg),
                         contentDescription = "DocVault Logo",
                         modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(16.dp)), // Optional: Round the corners if needed
+                            .size(84.dp)
+                            .clip(RoundedCornerShape(20.dp)),
                         contentScale = ContentScale.Fit
                     )
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(14.dp))
                     Text(
                         "DocVault",
-                        fontSize = 26.sp,
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = DocVaultColors.TextPrimary
                     )
-                    // ...
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "100% Offline. Encrypted. Private.",
+                        fontSize = 13.sp,
+                        color = DocVaultColors.TextSecondary,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
+
             // ── Scan Button ───────────────────────────────────────
             item {
                 Button(
@@ -155,8 +165,14 @@ fun HomeScreen(
                         contentColor = Color.White
                     )
                 ) {
+                    Icon(
+                        Icons.Default.QrCodeScanner,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        "📷  Scan Document",
+                        "Scan Document",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -167,11 +183,11 @@ fun HomeScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        "Overview",
-                        fontSize = 13.sp,
+                        "OVERVIEW",
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = DocVaultColors.TextSecondary,
-                        letterSpacing = 0.5.sp
+                        color = DocVaultColors.TextTertiary,
+                        letterSpacing = 1.sp
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -181,13 +197,15 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             value = totalDocs.toString(),
                             label = "Documents",
-                            emoji = "📄"
+                            icon = Icons.Default.Description,
+                            iconTint = DocVaultColors.ElectricIndigo
                         )
                         StatCard(
                             modifier = Modifier.weight(1f),
                             value = pdfCount.toString(),
                             label = "Exports",
-                            emoji = "📤"
+                            icon = Icons.Default.Upload,
+                            iconTint = DocVaultColors.EmeraldVerified
                         )
                     }
                     Row(
@@ -198,13 +216,15 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             value = formatBytes(storageBytes),
                             label = "Storage Used",
-                            emoji = "💾"
+                            icon = Icons.Default.Storage,
+                            iconTint = DocVaultColors.ElectricIndigo
                         )
                         StatCard(
                             modifier = Modifier.weight(1f),
                             value = todayCount.toString(),
                             label = "Scanned Today",
-                            emoji = "🗓️"
+                            icon = Icons.Default.CalendarToday,
+                            iconTint = DocVaultColors.EmeraldVerified
                         )
                     }
                 }
@@ -218,17 +238,18 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Recent Documents",
-                        fontSize = 13.sp,
+                        "RECENT DOCUMENTS",
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = DocVaultColors.TextSecondary,
-                        letterSpacing = 0.5.sp
+                        color = DocVaultColors.TextTertiary,
+                        letterSpacing = 1.sp
                     )
                     if (documents.isNotEmpty()) {
                         Text(
                             "See all",
                             fontSize = 12.sp,
                             color = DocVaultColors.ElectricIndigo,
+                            fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.clickable { onViewVaultClick() }
                         )
                     }
@@ -243,12 +264,25 @@ fun HomeScreen(
                             .clip(RoundedCornerShape(12.dp))
                             .background(DocVaultColors.CardSurface)
                             .border(1.dp, DocVaultColors.Border, RoundedCornerShape(12.dp))
-                            .padding(24.dp),
+                            .padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("📭", fontSize = 32.sp)
-                            Spacer(Modifier.height(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(DocVaultColors.ElectricIndigo.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.Description,
+                                    contentDescription = null,
+                                    tint = DocVaultColors.ElectricIndigo,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(Modifier.height(12.dp))
                             Text(
                                 "No documents yet",
                                 fontSize = 14.sp,
@@ -274,7 +308,6 @@ fun HomeScreen(
                 }
             }
 
-            // Bottom spacing for nav bar
             item { Spacer(Modifier.height(16.dp)) }
         }
     }
@@ -287,7 +320,8 @@ private fun StatCard(
     modifier: Modifier = Modifier,
     value: String,
     label: String,
-    emoji: String
+    icon: ImageVector,
+    iconTint: Color
 ) {
     Column(
         modifier = modifier
@@ -296,8 +330,21 @@ private fun StatCard(
             .border(1.dp, DocVaultColors.Border, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
-        Text(emoji, fontSize = 22.sp)
-        Spacer(Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(iconTint.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Spacer(Modifier.height(12.dp))
         Text(
             value,
             fontSize = 22.sp,
@@ -329,6 +376,13 @@ private fun RecentDocCard(
         .replace("\n", " ")
         .ifEmpty { "No text extracted" }
 
+    // Clean up raw filenames like "712033264709723.jpg" → "Document · Aug 06"
+    val displayName = if (document.fileName.matches(Regex("\\d+\\..*"))) {
+        "Document · $dateStr"
+    } else {
+        document.fileName
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -350,9 +404,7 @@ private fun RecentDocCard(
         ) {
             if (firstPage != null) {
                 Image(
-                    painter = rememberAsyncImagePainter(
-                        Uri.parse("file://$firstPage")
-                    ),
+                    painter = rememberAsyncImagePainter(Uri.parse("file://$firstPage")),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
@@ -360,14 +412,19 @@ private fun RecentDocCard(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Text("📄", fontSize = 22.sp)
+                Icon(
+                    Icons.Default.Description,
+                    contentDescription = null,
+                    tint = DocVaultColors.ElectricIndigo,
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
 
         // Info
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                document.fileName,
+                displayName,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = DocVaultColors.TextPrimary,
@@ -390,7 +447,12 @@ private fun RecentDocCard(
             )
         }
 
-        Text("›", fontSize = 20.sp, color = DocVaultColors.TextTertiary)
+        Icon(
+            Icons.Default.QrCodeScanner,
+            contentDescription = null,
+            tint = DocVaultColors.TextTertiary,
+            modifier = Modifier.size(16.dp)
+        )
     }
 }
 

@@ -19,29 +19,27 @@ import com.example.documentscanner.ui.screens.DocumentListScreen
 import com.example.documentscanner.ui.screens.DocumentViewScreen
 import com.example.documentscanner.ui.screens.ExportsScreen
 import com.example.documentscanner.ui.screens.HomeScreen
-import com.example.documentscanner.ui.screens.LockScreen
-import com.example.documentscanner.ui.screens.SetupScreen
+import com.example.documentscanner.ui.screens.ProfileScreen
 import com.example.documentscanner.ui.screens.SettingsScreen
 import com.example.documentscanner.utils.AppLockManager
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
-    object Setup : Screen("setup")
-    object Lock : Screen("lock")
     object Home : Screen("home")
     object Camera : Screen("camera")
     object Detail : Screen("detail")
     object DocumentList : Screen("document_list")
     object DocumentView : Screen("document_view")
     object Exports : Screen("exports")
+    object Profile : Screen("profile")
     object Settings : Screen("settings")
 }
 
-// Screens that show the bottom nav bar
 private val bottomNavRoutes = setOf(
     Screen.Home.route,
     Screen.DocumentList.route,
-    Screen.Exports.route
+    Screen.Exports.route,
+    Screen.Profile.route
 )
 
 @Composable
@@ -55,8 +53,6 @@ fun NavGraph() {
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute in bottomNavRoutes
 
-    val startDestination = Screen.Home.route
-
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -66,31 +62,9 @@ fun NavGraph() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = startDestination,
+            startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // ── Auth gates ────────────────────────────────────────
-            composable(Screen.Setup.route) {
-                SetupScreen(
-                    onSetupComplete = {
-                        AppLockManager.markSetupComplete(context)
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Setup.route) { inclusive = true }
-                        }
-                    }
-                )
-            }
-
-            composable(Screen.Lock.route) {
-                LockScreen(
-                    onUnlocked = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Lock.route) { inclusive = true }
-                        }
-                    }
-                )
-            }
-
             // ── Bottom nav screens ────────────────────────────────
             composable(Screen.Home.route) {
                 HomeScreen(
@@ -121,12 +95,18 @@ fun NavGraph() {
                 )
             }
 
-            // ── Full-screen flows (no bottom bar) ─────────────────
+            composable(Screen.Profile.route) {
+                ProfileScreen()
+            }
+
+            // ── Full screen flows (no bottom bar) ─────────────────
             composable(Screen.Camera.route) {
                 CameraScreen(
                     onScanComplete = { paths ->
                         currentImagePaths.value = paths
-                        navController.navigate(Screen.Detail.route)
+                        navController.navigate(Screen.Detail.route) {
+                            popUpTo(Screen.Camera.route) { inclusive = true }
+                        }
                     },
                     onCancel = { navController.popBackStack() }
                 )
@@ -157,8 +137,8 @@ fun NavGraph() {
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
                     onDeleteAllDocuments = {
-                        val db = com.example.documentscanner.data.database.DocumentDatabase
-                            .getInstance(context)
+                        val db = com.example.documentscanner.data.database
+                            .DocumentDatabase.getInstance(context)
                         val repo = com.example.documentscanner.domain.repository
                             .DocumentRepository(db.documentDao())
                         kotlinx.coroutines.CoroutineScope(

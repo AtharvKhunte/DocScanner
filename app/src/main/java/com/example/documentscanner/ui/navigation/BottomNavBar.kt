@@ -29,7 +29,7 @@ val bottomNavItems = listOf(
     BottomNavItem(Screen.Home.route, "Home", Icons.Filled.Home),
     BottomNavItem(Screen.DocumentList.route, "Vault", Icons.Outlined.FolderOpen),
     BottomNavItem(Screen.Exports.route, "Exports", Icons.Filled.Upload),
-    BottomNavItem("profile", "Profile", Icons.Filled.Person, isPlaceholder = true)
+    BottomNavItem("profile", "Profile", Icons.Filled.Person, isPlaceholder = false)
 )
 
 @Composable
