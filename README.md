@@ -285,5 +285,4 @@ Built with ❤️ using Kotlin + Jetpack Compose
 **Secure by default. Synced by choice.**
 
 </div>
-EOF
-echo "Done"
+
