@@ -166,7 +166,7 @@ UI (Compose) → ViewModel (StateFlow) → Repository → Room / Supabase
 
 ### 1. Clone
 ```bash
-git clone https://github.com/yourusername/DocVault.git
+git clone https://github.com/AtharvKhunte/DocScanner
 cd DocVault
 ```
 
