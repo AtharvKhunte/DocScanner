@@ -114,16 +114,16 @@ UI (Compose) → ViewModel (StateFlow) → Repository → Room / Supabase
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                   DocVault                       │
-│                                                  │
-│  Photos ──→ App-private storage (sandbox)        │
-│                                                  │
-│  Metadata ──→ Room + SQLCipher (AES-256)         │
-│                    ↑                             │
-│              Passphrase                          │
-│                    ↑                             │
-│         Android Keystore Key (AES-256/GCM)       │
-│         [Hardware-backed, never leaves device]   │
+│                   DocVault                      │
+│                                                 │
+│  Photos ──→ App-private storage (sandbox)       │
+│                                                 │
+│  Metadata ──→ Room + SQLCipher (AES-256)        │
+│                    ↑                            │
+│              Passphrase                         │
+│                    ↑                            │
+│         Android Keystore Key (AES-256/GCM)      │
+│         [Hardware-backed, never leaves device]  │
 └─────────────────────────────────────────────────┘
 ```
 
