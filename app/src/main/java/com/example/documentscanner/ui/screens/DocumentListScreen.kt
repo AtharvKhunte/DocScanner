@@ -2,7 +2,6 @@
 
 package com.example.documentscanner.ui.screens
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,16 +11,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,10 +41,9 @@ import com.example.documentscanner.ui.viewmodel.DocumentListViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
-enum class SortOrder {
-    DATE_NEWEST, DATE_OLDEST, NAME_AZ, NAME_ZA
-}
+enum class SortOrder { DATE_NEWEST, DATE_OLDEST, NAME_AZ, NAME_ZA }
 
 @Composable
 fun DocumentListScreen(
@@ -56,9 +51,7 @@ fun DocumentListScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val viewModel: DocumentListViewModel = viewModel(
-        factory = DocumentListViewModelFactory(context)
-    )
+    val viewModel: DocumentListViewModel = viewModel(factory = DocumentListViewModelFactory(context))
     val documents by viewModel.documents.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -95,27 +88,14 @@ fun DocumentListScreen(
                         color = DocVaultColors.TextPrimary
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = DocVaultColors.TextPrimary
-                        )
-                    }
-                },
                 actions = {
                     Box {
                         IconButton(onClick = { showSortMenu = true }) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Sort,
-                                contentDescription = "Sort",
-                                tint = DocVaultColors.TextSecondary
-                            )
+                            Icon(Icons.AutoMirrored.Filled.Sort, "Sort", tint = DocVaultColors.TextSecondary)
                         }
                         DropdownMenu(
                             expanded = showSortMenu,
-                            onDismissRequest = { showSortMenu = false },
+                            onDismissRequest = { showSortMenu = false }
                         ) {
                             SortMenuItem("Newest first", sortOrder == SortOrder.DATE_NEWEST) {
                                 sortOrder = SortOrder.DATE_NEWEST; showSortMenu = false
@@ -144,118 +124,55 @@ fun DocumentListScreen(
                 .padding(padding)
                 .background(DocVaultColors.DarkBackground)
         ) {
-            // ── Search Bar ───────────────────────────────────────
-            Row(
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = {
-                        Text("Search Docs...", color = DocVaultColors.TextTertiary, fontSize = 14.sp)
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = null,
-                            tint = DocVaultColors.TextTertiary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = DocVaultColors.ElectricIndigo,
-                        unfocusedBorderColor = DocVaultColors.Border,
-                        focusedTextColor = DocVaultColors.TextPrimary,
-                        unfocusedTextColor = DocVaultColors.TextPrimary,
-                        cursorColor = DocVaultColors.ElectricIndigo,
-                        focusedContainerColor = DocVaultColors.CardSurface,
-                        unfocusedContainerColor = DocVaultColors.CardSurface
-                    )
+                placeholder = { Text("Search Docs...", color = DocVaultColors.TextTertiary, fontSize = 14.sp) },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, null, tint = DocVaultColors.TextTertiary, modifier = Modifier.size(18.dp))
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = DocVaultColors.ElectricIndigo,
+                    unfocusedBorderColor = DocVaultColors.Border,
+                    focusedTextColor = DocVaultColors.TextPrimary,
+                    unfocusedTextColor = DocVaultColors.TextPrimary,
+                    cursorColor = DocVaultColors.ElectricIndigo,
+                    focusedContainerColor = DocVaultColors.CardSurface,
+                    unfocusedContainerColor = DocVaultColors.CardSurface
                 )
+            )
 
-                // Filter button
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(DocVaultColors.CardSurface)
-                        .border(1.dp, DocVaultColors.Border, RoundedCornerShape(12.dp))
-                        .clickable { showSortMenu = true },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Tune,
-                        contentDescription = "Filter",
-                        tint = DocVaultColors.TextSecondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-
-            // ── Content ──────────────────────────────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 when {
-                    isLoading -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = DocVaultColors.ElectricIndigo)
+                    isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = DocVaultColors.ElectricIndigo)
+                    }
+                    documents.isEmpty() -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("No documents yet", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DocVaultColors.TextPrimary)
+                            Spacer(Modifier.height(8.dp))
+                            Text("Scan your first document to get started", color = DocVaultColors.TextSecondary, textAlign = TextAlign.Center)
                         }
                     }
-
-                    documents.isEmpty() -> {
-                        Box(
-                            Modifier.fillMaxSize().padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    "No documents yet",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = DocVaultColors.TextPrimary
-                                )
-                                Spacer(Modifier.height(8.dp))
-                                Text(
-                                    "Scan your first document to get started",
-                                    color = DocVaultColors.TextSecondary,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
+                    filteredDocuments.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No results for \"$searchQuery\"", color = DocVaultColors.TextTertiary)
                     }
-
-                    filteredDocuments.isEmpty() -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                "No results for \"$searchQuery\"",
-                                color = DocVaultColors.TextTertiary
+                    else -> LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(filteredDocuments, key = { it.id }) { doc ->
+                            VaultDocumentCard(
+                                document = doc,
+                                onClick = { onDocumentClick(doc) },
+                                onDelete = { viewModel.deleteDocument(doc.id) },
+                                onRename = { newName -> viewModel.renameDocument(doc.id, newName) }
                             )
-                        }
-                    }
-
-                    else -> {
-                        LazyColumn(
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(filteredDocuments, key = { it.id }) { doc ->
-                                VaultDocumentCard(
-                                    document = doc,
-                                    onClick = { onDocumentClick(doc) },
-                                    onDelete = { viewModel.deleteDocument(doc.id) },
-                                    onRename = { newName -> viewModel.renameDocument(doc.id, newName) }
-                                )
-                            }
                         }
                     }
                 }
@@ -264,9 +181,6 @@ fun DocumentListScreen(
     }
 }
 
-// ── Vault Document Card ──────────────────────────────────────────
-
-@SuppressLint("NonObservableLocale")
 @Composable
 private fun VaultDocumentCard(
     document: ScannedDocument,
@@ -274,15 +188,27 @@ private fun VaultDocumentCard(
     onDelete: () -> Unit,
     onRename: (String) -> Unit
 ) {
-    val dateStr = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-        .format(Date(document.dateCreated))
+    val dateStr = SimpleDateFormat("MMM dd, yyyy", LocalLocale.current.platformLocale).format(Date(document.dateCreated))
     val firstPage = document.pageList().firstOrNull()
+    val pages = document.pageList().size
+
+    // Clean display name
+    val displayName = if (document.fileName.matches(Regex("\\d+\\..*"))) {
+        "Document · $dateStr"
+    } else {
+        document.fileName
+    }
+
+    // OCR snippet
+    val snippet = document.extractedText
+        .take(80)
+        .replace("\n", " ")
+        .ifEmpty { null }
 
     var showOverflowMenu by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameText by remember(document.fileName) { mutableStateOf(document.fileName) }
 
-    // Rename Dialog
     if (showRenameDialog) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
@@ -329,7 +255,7 @@ private fun VaultDocumentCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // ── Thumbnail ────────────────────────────────────────────
+        // Thumbnail
         Box(
             modifier = Modifier
                 .size(56.dp)
@@ -340,10 +266,8 @@ private fun VaultDocumentCard(
             if (firstPage != null) {
                 AsyncImage(
                     model = Uri.parse("file://$firstPage"),
-                    contentDescription = "Document thumbnail",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(8.dp)),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Crop
                 )
             } else {
@@ -351,95 +275,60 @@ private fun VaultDocumentCard(
             }
         }
 
-        // ── Title + Date ─────────────────────────────────────────
+        // Info
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = document.fileName,
+                displayName,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = DocVaultColors.TextPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(3.dp))
             Text(
-                text = dateStr,
-                fontSize = 12.sp,
+                "$dateStr · $pages ${if (pages == 1) "page" else "pages"}",
+                fontSize = 11.sp,
                 color = DocVaultColors.TextSecondary
             )
-        }
-
-        // ── Three-dot Overflow Menu ───────────────────────────────
-        Box {
-            IconButton(
-                onClick = { showOverflowMenu = true },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    Icons.Default.MoreVert,
-                    contentDescription = "More options",
-                    tint = DocVaultColors.TextSecondary,
-                    modifier = Modifier.size(18.dp)
+            if (snippet != null) {
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    snippet,
+                    fontSize = 11.sp,
+                    color = DocVaultColors.TextTertiary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
+        }
 
-            DropdownMenu(
-                expanded = showOverflowMenu,
-                onDismissRequest = { showOverflowMenu = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Share", color = DocVaultColors.TextPrimary) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Share, contentDescription = null,
-                            tint = DocVaultColors.TextSecondary, modifier = Modifier.size(16.dp))
-                    },
-                    onClick = {
-                        showOverflowMenu = false
-                        // Share handled via DocumentViewScreen
-                        onClick()
-                    }
-                )
+        // Overflow menu
+        Box {
+            IconButton(onClick = { showOverflowMenu = true }, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.MoreVert, null, tint = DocVaultColors.TextSecondary, modifier = Modifier.size(18.dp))
+            }
+            DropdownMenu(expanded = showOverflowMenu, onDismissRequest = { showOverflowMenu = false }) {
                 DropdownMenuItem(
                     text = { Text("Edit", color = DocVaultColors.TextPrimary) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Edit, contentDescription = null,
-                            tint = DocVaultColors.TextSecondary, modifier = Modifier.size(16.dp))
-                    },
-                    onClick = {
-                        showOverflowMenu = false
-                        showRenameDialog = true
-                    }
+                    leadingIcon = { Icon(Icons.Default.Edit, null, tint = DocVaultColors.TextSecondary, modifier = Modifier.size(16.dp)) },
+                    onClick = { showOverflowMenu = false; showRenameDialog = true }
                 )
                 DropdownMenuItem(
                     text = { Text("Delete", color = DocVaultColors.Error) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Delete, contentDescription = null,
-                            tint = DocVaultColors.Error, modifier = Modifier.size(16.dp))
-                    },
-                    onClick = {
-                        showOverflowMenu = false
-                        onDelete()
-                    }
+                    leadingIcon = { Icon(Icons.Default.Delete, null, tint = DocVaultColors.Error, modifier = Modifier.size(16.dp)) },
+                    onClick = { showOverflowMenu = false; onDelete() }
                 )
             }
         }
     }
 }
 
-// ── Sort Menu Item ───────────────────────────────────────────────
-
 @Composable
 private fun SortMenuItem(label: String, selected: Boolean, onClick: () -> Unit) {
     DropdownMenuItem(
-        text = {
-            Text(
-                label,
-                color = if (selected) DocVaultColors.ElectricIndigo else DocVaultColors.TextPrimary
-            )
-        },
+        text = { Text(label, color = if (selected) DocVaultColors.ElectricIndigo else DocVaultColors.TextPrimary) },
         onClick = onClick,
-        trailingIcon = {
-            if (selected) Text("✓", color = DocVaultColors.ElectricIndigo)
-        }
+        trailingIcon = { if (selected) Text("✓", color = DocVaultColors.ElectricIndigo) }
     )
 }

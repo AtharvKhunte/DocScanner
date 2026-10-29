@@ -38,7 +38,7 @@ import java.io.File
 
 private const val PREFS_SETTINGS = "docvault_settings"
 private const val KEY_BIOMETRIC_LOCK = "biometric_lock_enabled"
-private const val KEY_AUTO_LOCK = "auto_lock_minutes"
+private const val KEY_AUTO_LOCK = "auto _lock_minutes"
 private const val KEY_DEFAULT_EXPORT = "default_export_format"
 private const val KEY_PDF_INCLUDE_TEXT = "pdf_include_text"
 
@@ -54,9 +54,7 @@ fun SettingsScreen(
     }
 
     // ── State ─────────────────────────────────────────────────────
-    var biometricEnabled by remember {
-        mutableStateOf(prefs.getBoolean(KEY_BIOMETRIC_LOCK, true))
-    }
+
     var autoLockMinutes by remember {
         mutableStateOf(prefs.getInt(KEY_AUTO_LOCK, 0))
     }
@@ -261,35 +259,6 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // ── Security ─────────────────────────────────────────
-            SettingsSection(title = "Security") {
-                // Biometric lock toggle
-                SettingsToggleRow(
-                    icon = Icons.Default.Lock,
-                    title = "Biometric Lock",
-                    subtitle = if (canUseBiometric) "Require fingerprint or face on launch"
-                    else "Not available on this device",
-                    checked = biometricEnabled && canUseBiometric,
-                    enabled = canUseBiometric,
-                    onCheckedChange = {
-                        biometricEnabled = it
-                        prefs.edit().putBoolean(KEY_BIOMETRIC_LOCK, it).apply()
-                    }
-                )
-
-                HorizontalDivider(color = DocVaultColors.Border, thickness = 0.5.dp)
-
-                // Auto-lock timer
-                SettingsNavRow(
-                    icon = Icons.Default.Timer,
-                    title = "Auto-lock Timer",
-                    subtitle = when (autoLockMinutes) {
-                        0 -> "Immediately"
-                        -1 -> "Never"
-                        else -> "After $autoLockMinutes minute${if (autoLockMinutes > 1) "s" else ""}"
-                    },
-                    onClick = { showAutoLockDialog = true }
-                )
-            }
 
             // ── Export Defaults ───────────────────────────────────
             SettingsSection(title = "Export Defaults") {
@@ -354,7 +323,7 @@ fun SettingsScreen(
                 SettingsInfoRow(
                     icon = Icons.Default.Info,
                     title = "Version",
-                    subtitle = "1.0.0 — Phase 2"
+                    subtitle = "1.0.0"
                 )
 
                 HorizontalDivider(color = DocVaultColors.Border, thickness = 0.5.dp)

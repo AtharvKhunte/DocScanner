@@ -1,28 +1,35 @@
 package com.example.documentscanner.utils
 
+import android.content.Context
+import com.russhwolf.settings.SharedPreferencesSettings
+import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.SettingsSessionManager
 import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.gotrue.GoTrue
-import io.github.jan.supabase.compose.auth.ComposeAuth
-import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.storage.Storage
 
 object SupabaseManager {
 
-    val client = createSupabaseClient(
-        supabaseUrl = "https://cignobhbxotmhwlfhhvq.supabase.co",
-        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZ25vYmhieG90bWh3bGZoaHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxODI5NjAsImV4cCI6MjEwMTc1ODk2MH0.O1vMCkKCAsdCTu7yAxMi_w4gRMeAEkED3xmRq0AjobE"
-    ) {
-        install(GoTrue) {
-            scheme = "docvault"
-            host = "auth"
-        }
-        install(Postgrest)
-        install(Storage)
-        install(ComposeAuth) {
-            googleNativeLogin(
-                serverClientId = "925605241455-ivjomq3svh0d6447s2f8c3brb5bp5isa.apps.googleusercontent.com"
-            )
+    private var _client: io.github.jan.supabase.SupabaseClient? = null
+
+    fun initialize(context: Context) {
+        val prefs = context.getSharedPreferences("supabase_session", Context.MODE_PRIVATE)
+        val settings = SharedPreferencesSettings(prefs)
+
+        _client = createSupabaseClient(
+            supabaseUrl = "https://cignobhbxotmhwlfhhvq.supabase.co",
+            supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZ25vYmhieG90bWh3bGZoaHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxODI5NjAsImV4cCI6MjEwMTc1ODk2MH0.O1vMCkKCAsdCTu7yAxMi_w4gRMeAEkED3xmRq0AjobE"
+        ) {
+            install(Auth) {
+                scheme = "docvault"
+                host = "auth"
+                sessionManager = SettingsSessionManager(settings)
+            }
+            install(Postgrest)
+            install(Storage)
         }
     }
+
+    val client get() = _client
+        ?: error("SupabaseManager not initialized")
 }

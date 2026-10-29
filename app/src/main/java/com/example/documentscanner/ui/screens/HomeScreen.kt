@@ -1,5 +1,5 @@
 package com.example.documentscanner.ui.screens
-
+import androidx.compose.material.icons.filled.CameraAlt
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
@@ -63,7 +64,7 @@ fun HomeScreen(
 
     val totalDocs = documents.size
     val exports = remember(documents) { ExportManager.listExports(context) }
-    val pdfCount = remember(exports) { exports.count { it.ispdf } }
+    val exportCount = remember(exports) { exports.size }
     val storageBytes = remember(documents) {
         context.getExternalFilesDir(null)
             ?.walkTopDown()
@@ -144,7 +145,7 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "100% Offline. Encrypted. Private.",
+                        "Secure by default. Synced by choice.",
                         fontSize = 13.sp,
                         color = DocVaultColors.TextSecondary,
                         textAlign = TextAlign.Center
@@ -166,7 +167,7 @@ fun HomeScreen(
                     )
                 ) {
                     Icon(
-                        Icons.Default.QrCodeScanner,
+                        Icons.Default.  DocumentScanner,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
@@ -202,7 +203,7 @@ fun HomeScreen(
                         )
                         StatCard(
                             modifier = Modifier.weight(1f),
-                            value = pdfCount.toString(),
+                            value = exportCount.toString(),
                             label = "Exports",
                             icon = Icons.Default.Upload,
                             iconTint = DocVaultColors.EmeraldVerified
@@ -432,12 +433,14 @@ private fun RecentDocCard(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(3.dp))
-            Text(
-                dateStr,
-                fontSize = 11.sp,
-                color = DocVaultColors.TextTertiary
-            )
-            Spacer(Modifier.height(3.dp))
+            if (!displayName.contains("·")) {
+                Text(
+                    dateStr,
+                    fontSize = 11.sp,
+                    color = DocVaultColors.TextTertiary
+                )
+                Spacer(Modifier.height(3.dp))
+            }
             Text(
                 preview,
                 fontSize = 11.sp,

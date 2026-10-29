@@ -1,38 +1,38 @@
 package com.example.documentscanner.utils
 
 import android.util.Log
-import io.github.jan.supabase.gotrue.gotrue
-import io.github.jan.supabase.gotrue.user.UserInfo
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.user.UserInfo
 
 object AuthRepository {
 
-    private val gotrue get() = SupabaseManager.client.gotrue
+    private val auth get() = SupabaseManager.client.auth
 
     val currentUser: UserInfo?
-        get() = gotrue.currentUserOrNull()
+        get() = auth.currentUserOrNull()
 
     val isLoggedIn: Boolean
-        get() = gotrue.currentUserOrNull() != null
+        get() = auth.currentUserOrNull() != null
 
     val userEmail: String
-        get() = gotrue.currentUserOrNull()?.email ?: ""
+        get() = auth.currentUserOrNull()?.email ?: ""
 
-    suspend fun signOut(): Result<Unit> {
+    suspend fun restoreSession(): Boolean {
         return try {
-            gotrue.logout()
-            Result.success(Unit)
+            auth.awaitInitialization()
+            auth.currentUserOrNull() != null
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Sign out error: ${e.message}", e)
-            Result.failure(e)
+            Log.e("AuthRepository", "Session restore failed: ${e.message}")
+            false
         }
     }
 
-    suspend fun refreshSession(): Result<Unit> {
+    suspend fun signOut(): Result<Unit> {
         return try {
-            gotrue.refreshCurrentSession()
+            auth.signOut()
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Refresh error: ${e.message}", e)
+            Log.e("AuthRepository", "Sign out error: ${e.message}", e)
             Result.failure(e)
         }
     }
