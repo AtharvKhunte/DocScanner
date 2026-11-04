@@ -69,8 +69,20 @@ fun NavGraph() {
             composable(Screen.Home.route) {
                 HomeScreen(
                     onScanClick = { navController.navigate(Screen.Camera.route) },
-                    onViewVaultClick = { navController.navigate(Screen.DocumentList.route) },
-                    onViewExportsClick = { navController.navigate(Screen.Exports.route) },
+                    onViewVaultClick = {
+                        navController.navigate(Screen.DocumentList.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onViewExportsClick = {
+                        navController.navigate(Screen.Exports.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onSettingsClick = { navController.navigate(Screen.Settings.route) },
                     onDocumentClick = { document ->
                         selectedDocument.value = document

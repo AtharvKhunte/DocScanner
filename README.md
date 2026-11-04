@@ -1,288 +1,179 @@
-
 <div align="center">
 
-# 🔐 DocVault
+# DocVault
 
-### Secure Document Scanner & Vault for Android
+**Private document scanner and vault for Android.**
+Scan, extract text, search, export. Everything stays on your phone.
 
-[![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
-[![Kotlin](https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
-[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
-[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+![Platform](https://img.shields.io/badge/Platform-Android%207.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
+![Version](https://img.shields.io/badge/Version-1.0.0-5B61F6?style=flat-square)
+![Offline](https://img.shields.io/badge/Works-Offline-10B981?style=flat-square)
 
-**Scan. Extract. Secure. Sync.**
-
-*A privacy-first document management app with on-device OCR, AES-256 encryption, and optional cross-device cloud sync via Google Passkey.*
-
-[Features](#-features) • [Architecture](#-architecture) • [Screenshots](#-screenshots) • [Setup](#-setup) • [Security](#-security) • [Roadmap](#-roadmap)
-
----
+[Features](#features) · [Install](#install) · [Security](#security-model) · [Build](#build-from-source) · [Architecture](#architecture) · [Roadmap](#roadmap)
 
 </div>
 
-## ✨ Features
+---
 
-### 📸 Document Scanning
-- **ML Kit Document Scanner** — real edge detection, perspective correction, auto-cleanup
-- **Multi-page capture** — scan multi-page documents as a single vault entry
-- **Animated scanner transition** — smooth branded loading before scanner opens
+## What it does
 
-### 🔍 OCR Text Extraction
-- **On-device ML Kit OCR** — 100% offline, no data sent to servers
-- **Editable OCR text** — correct extraction errors before saving
-- **Multi-page text extraction** — extracts and labels text per page
-- **Full-text search** — search across all document content and filenames
+1. **Scan** a document with automatic edge detection and perspective correction. Multi-page supported.
+2. **Extract** the text with on-device OCR. Edit it before saving.
+3. **Store** it in an encrypted local vault.
+4. **Find** it later with full-text search across names and content.
+5. **Export** to PDF or TXT and share.
 
-### 🔐 Security & Privacy
-- **SQLCipher AES-256** — entire database encrypted at rest
-- **Android Keystore** — database passphrase generated and protected by hardware-backed AES-256/GCM key
-- **App-private storage** — documents inaccessible to other apps
-- **100% offline capable** — works with zero internet connection
-
-### ☁️ Cloud Sync (Optional)
-- **Google Passkey login** — fingerprint / face / PIN, no password, no OTP
-- **Supabase backend** — PostgreSQL + encrypted storage
-- **User-controlled sync** — toggle sync on/off, sync on demand
-- **Cross-device access** — documents available on all signed-in devices
-
-### 📤 Export
-- **PDF export** — image only, or image + OCR text as final page
-- **TXT export** — plain text of extracted content
-- **Saves to Downloads/DocVault** — visible in Files app
-- **Android share sheet** — share to WhatsApp, email, Drive, etc.
-
-### 🎨 UI/UX
-- **Dark glassmorphism design** — Electric Indigo `#5B61F6` + Emerald `#10B981`
-- **Material 3** — ElevatedCards, SecondaryTabRow, NavigationBar
-- **Pill bottom navigation** — Home / Vault / Exports / Profile
-- **Dashboard home screen** — live stats + recent documents
+No account. No server. No analytics. Nothing leaves the device unless you export it.
 
 ---
 
-## 🏗️ Architecture
+## Features
 
-```
-DocVault/
-├── data/
-│   ├── dao/                    # Room DAO queries
-│   ├── database/               # SQLCipher-encrypted Room DB
-│   └── entity/                 # ScannedDocument entity + pageList()
-├── domain/
-│   └── repository/             # DocumentRepository
-├── ui/
-│   ├── components/             # GlassmorphicCard, DocVaultIcon
-│   ├── navigation/             # NavGraph, BottomNavBar
-│   ├── screens/                # All screen composables
-│   ├── theme/                  # Color, Theme (Material 3)
-│   └── viewmodel/              # DocumentViewModel, DocumentListViewModel
-└── utils/
-    ├── AuthRepository          # Google Sign-In session management
-    ├── DocumentScannerLauncher # ML Kit scanner config
-    ├── ExportManager           # PDF + TXT export to Downloads
-    ├── KeystoreManager         # Android Keystore AES-256/GCM
-    ├── OCRProcessor            # ML Kit text recognition
-    ├── ShareUtils              # FileProvider share sheet
-    ├── SupabaseManager         # Supabase client + session persistence
-    └── SyncRepository          # Document upload/fetch/delete
-```
-
-### Pattern
-```
-MVVM + Repository
-UI (Compose) → ViewModel (StateFlow) → Repository → Room / Supabase
-```
+| Area | What you get |
+|---|---|
+| **Scanning** | ML Kit Document Scanner: auto edge detection, crop, cleanup, up to 20 pages per document |
+| **OCR** | ML Kit Text Recognition, fully on-device. Per-page text, editable before save |
+| **Vault** | Thumbnails, page count, text snippet, search, sort (newest / oldest / A-Z / Z-A), rename, delete |
+| **Viewer** | Document View and Text View tabs, page thumbnail strip, selectable text |
+| **PDF export** | Image-only, or images plus extracted text as a final page. Images downsampled to 1600px to keep files small |
+| **TXT export** | Plain text of the extracted content |
+| **Exports** | Files saved to `Downloads/DocVault`, visible in any file manager. In-app list with ALL / PDF / TXT filter, share, delete |
+| **Home** | Live stats (documents, exports, storage, scanned today) and recent documents |
+| **Settings** | Export defaults, storage usage, clear exports, delete all documents |
+| **UI** | Dark Material 3 theme, glass-style cards, pill bottom navigation, animated scanner hand-off |
 
 ---
 
-## 📱 Screens
+## Install
 
-| Screen | Description |
-|--------|-------------|
-| **Home** | Dashboard with live stats (docs, exports, storage, today's scans) + recent documents |
-| **Camera** | ML Kit document scanner with edge detection and multi-page capture |
-| **Detail** | Post-scan review — image preview, OCR extraction, editable text, save to vault |
-| **Vault (DocumentList)** | Searchable, sortable document list with thumbnail previews and overflow menu |
-| **DocumentView** | Read-only viewer — tabbed Document View / Text View with export actions |
-| **Exports** | All exported PDFs and TXTs with filter (ALL/PDF/TXT), share and delete |
-| **Profile** | Google Sign-In, cloud sync toggle, sync-now, sign out |
-| **Settings** | Biometric lock toggle, auto-lock timer, export defaults, storage info, about |
+### From a release APK
 
----
+1. Open the **Releases** page of this repository.
+2. Download `docvault-1.0.0.apk` from the latest release.
+3. Open the file on your phone. Allow **Install unknown apps** for your browser or file manager when asked.
+4. Launch DocVault.
 
-## 🔒 Security
+**Requirements**
+- Android 7.0 (API 24) or newer
+- Google Play services installed (the ML Kit document scanner is delivered through it)
 
-```
-┌─────────────────────────────────────────────────┐
-│                   DocVault                      │
-│                                                 │
-│  Photos ──→ App-private storage (sandbox)       │
-│                                                 │
-│  Metadata ──→ Room + SQLCipher (AES-256)        │
-│                    ↑                            │
-│              Passphrase                         │
-│                    ↑                            │
-│         Android Keystore Key (AES-256/GCM)      │
-│         [Hardware-backed, never leaves device]  │
-└─────────────────────────────────────────────────┘
-```
-
-| Layer | Method | Strength |
-|-------|--------|----------|
-| Database | SQLCipher AES-256 | ✅ Strong |
-| Passphrase storage | Android Keystore AES-256/GCM | ✅ Hardware-backed |
-| File storage | App sandbox | ⚠️ Sandbox only |
-| Auth | Google Passkey (FIDO2) | ✅ No password/OTP |
-| Transport | HTTPS (Supabase) | ✅ TLS |
+**Auto-updates:** add this repository's URL to [Obtainium](https://github.com/ImranR98/Obtainium) and new releases install from there.
 
 ---
 
-## 🛠️ Tech Stack
+## Security model
 
-| Category | Technology |
-|----------|-----------|
-| Language | Kotlin |
-| UI | Jetpack Compose + Material 3 |
-| Camera/Scan | ML Kit Document Scanner |
-| OCR | ML Kit Text Recognition (on-device) |
-| Database | Room + SQLCipher |
-| Encryption | Android Keystore + Tink |
-| Auth | Google Credential Manager (Passkey) |
-| Backend | Supabase (Auth + PostgreSQL + Storage) |
-| Navigation | Jetpack Navigation Compose |
-| Image loading | Coil |
-| Async | Kotlin Coroutines + Flow |
-| Min SDK | API 24 (Android 7.0) |
+| Data | Protection | Notes |
+|---|---|---|
+| Document metadata and OCR text | SQLCipher AES-256 | Whole database encrypted at rest |
+| Database passphrase | Android Keystore AES-256/GCM | Random per install, never in source, never stored in plaintext |
+| Page images | App-private storage | Protected by the Android app sandbox. **Not** encrypted at file level |
+| Exported PDF / TXT | Plain files in `Downloads/DocVault` | Readable by other apps with storage access. Delete them from the Exports tab when done |
+| Network | None | The scanner and OCR run on-device. No analytics, no ads, no telemetry |
+
+**Known limits in v1**
+- There is no app lock. Anyone who can unlock your phone can open the app.
+- Image files are not individually encrypted. A rooted device or physical extraction could read them.
+- Cloud sync and account login are not part of v1.
 
 ---
 
-## ⚙️ Setup
+## Build from source
 
-### Prerequisites
-- Android Studio Hedgehog or later
-- Android device / emulator API 24+
-- Google Cloud Console account (for Sign-In)
-- Supabase account (for cloud sync)
+**Requirements:** Android Studio (current stable), JDK 17, Android SDK 36.
 
-### 1. Clone
 ```bash
-git clone https://github.com/AtharvKhunte/DocScanner
+git clone https://github.com/<your-username>/DocVault.git
 cd DocVault
-```
-
-### 2. Supabase Setup
-1. Create project at [supabase.com](https://supabase.com)
-2. Run the SQL in `supabase/schema.sql` in the SQL Editor
-3. Enable Google provider: **Authentication → Providers → Google**
-4. Copy your `Project URL` and `anon key`
-5. Update `SupabaseManager.kt`:
-```kotlin
-supabaseUrl = "YOUR_PROJECT_URL"
-supabaseKey = "YOUR_ANON_KEY"
-```
-
-### 3. Google Sign-In Setup
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Create OAuth 2.0 credentials (Web + Android)
-3. Add redirect URI: `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
-4. Update `AuthRepository.kt`:
-```kotlin
-private const val WEB_CLIENT_ID = "YOUR_WEB_CLIENT_ID"
-```
-
-### 4. Build
-```bash
 ./gradlew assembleDebug
 ```
 
----
+Debug APK output: `app/build/outputs/apk/debug/app-debug.apk`
 
-## 🗄️ Database Schema
+### Signed release build
 
-```sql
--- User profiles (auto-created on signup)
-profiles (id, email, created_at)
-
--- Document metadata
-documents (
-  id, user_id, local_id,
-  file_name, extracted_text,
-  date_created, date_modified, page_count
-)
-```
-
-Row Level Security enabled — users can only access their own data.
+1. Create a keystore once and back it up. Losing it means you cannot ship updates that install over existing ones.
+   ```bash
+   keytool -genkey -v -keystore docvault-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias docvault
+   ```
+2. Android Studio: **Build > Generate Signed App Bundle / APK > APK > release**.
+3. Output: `app/release/app-release.apk`.
+4. Never commit the `.jks` file or its passwords.
 
 ---
 
-## 📦 Key Dependencies
-
-```kotlin
-// Supabase
-implementation("io.github.jan-tennert.supabase:auth-kt:3.1.4")
-implementation("io.github.jan-tennert.supabase:postgrest-kt:3.1.4")
-implementation("io.github.jan-tennert.supabase:storage-kt:3.1.4")
-implementation("io.github.jan-tennert.supabase:compose-auth:3.1.4")
-
-// ML Kit
-implementation("com.google.mlkit:text-recognition:16.0.0")
-implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
-
-// Room + SQLCipher
-implementation("androidx.room:room-runtime:2.7.0")
-implementation("net.zetetic:android-database-sqlcipher:4.5.4")
-
-// Google Passkey
-implementation("androidx.credentials:credentials:1.3.0")
-implementation("com.google.android.gms:play-services-auth:21.2.0")
-```
-
----
-
-## 🗺️ Roadmap
-
-- [x] Camera capture with ML Kit edge detection
-- [x] On-device OCR text extraction
-- [x] AES-256 encrypted local database
-- [x] Multi-page document support
-- [x] PDF + TXT export to Downloads
-- [x] Dark glassmorphism UI
-- [x] Google Passkey authentication
-- [x] Supabase cloud sync (optional)
-- [x] Sort, rename, search documents
-- [x] Settings screen
-- [ ] Batch operations (multi-select, merge PDFs)
-- [ ] Per-document encryption (image files)
-- [ ] Document categories / tags
-- [ ] Widget for quick scan
-- [ ] WebAuthn passkey (native, no Google dependency)
-- [ ] iPad / tablet layout
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit: `git commit -m "Add your feature"`
-4. Push: `git push origin feature/your-feature`
-5. Open a Pull Request
-
----
-
-## 📄 License
+## Architecture
 
 ```
-MIT License — see LICENSE file for details
+MVVM + Repository
+
+UI (Compose screens)
+   -> ViewModel (StateFlow)
+      -> Repository
+         -> Room DAO -> SQLCipher database
 ```
 
+```
+com.example.documentscanner/
+├── data/
+│   ├── dao/               DocumentDao
+│   ├── database/          DocumentDatabase (Room + SQLCipher)
+│   └── entity/            ScannedDocument, pageList()
+├── domain/repository/     DocumentRepository
+├── ui/
+│   ├── components/        GlassmorphicCard, DocVaultIcon
+│   ├── navigation/        NavGraph, BottomNavBar
+│   ├── screens/           Home, Camera, Detail, DocumentList, DocumentView, Exports, Settings
+│   ├── theme/             Color, Theme
+│   └── viewmodel/         DocumentViewModel, DocumentListViewModel
+└── utils/
+    ├── DocumentScannerLauncher   ML Kit scanner config
+    ├── OCRProcessor              ML Kit text recognition
+    ├── KeystoreManager           Keystore-backed passphrase
+    ├── ExportManager             PDF / TXT to Downloads via MediaStore
+    └── ShareUtils                FileProvider share sheet
+```
+
+### Stack
+
+| Layer | Library |
+|---|---|
+| Language | Kotlin, Coroutines, Flow |
+| UI | Jetpack Compose, Material 3, Navigation Compose, Coil |
+| Scan / OCR | ML Kit Document Scanner, ML Kit Text Recognition |
+| Storage | Room, SQLCipher, Android Keystore |
+| Export | `PdfDocument`, MediaStore, FileProvider |
+| Min / target SDK | 24 / 36 |
+
 ---
+
+## Roadmap
+
+**Shipped in v1.0**
+- [x] Multi-page scan with edge detection
+- [x] On-device OCR with editing
+- [x] Encrypted local vault, search, sort, rename
+- [x] PDF and TXT export to `Downloads/DocVault`
+- [x] Dashboard, exports manager, settings
+
+**Planned**
+- [ ] Optional account login with passkeys
+- [ ] Optional cross-device sync (Supabase backend scaffolded, not enabled)
+- [ ] App lock backed by a biometric-gated Keystore key
+- [ ] Encrypt page images at file level
+- [ ] Multi-select and merge into one PDF
+- [ ] Tags and folders
+- [ ] Performance pass with Perfetto traces (launch time, screen transitions)
+
+---
+
+## License
+
+Add a `LICENSE` file before publishing. MIT is a common choice for a portfolio project.
 
 <div align="center">
 
-Built with ❤️ using Kotlin + Jetpack Compose
-
-**Secure by default. Synced by choice.**
+Built with Kotlin and Jetpack Compose.
 
 </div>
-
