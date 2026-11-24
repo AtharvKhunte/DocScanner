@@ -49,10 +49,7 @@ android {
 
 dependencies {
     // === Supabase Core (Pinned to v3) ===
-    implementation("io.github.jan-tennert.supabase:auth-kt:3.1.4")
-    implementation("io.github.jan-tennert.supabase:postgrest-kt:3.1.4")
-    implementation("io.github.jan-tennert.supabase:storage-kt:3.1.4")
-    implementation("io.github.jan-tennert.supabase:compose-auth:3.1.4")
+
 
     // === Core Android ===
     implementation("androidx.core:core-ktx:1.12.0")

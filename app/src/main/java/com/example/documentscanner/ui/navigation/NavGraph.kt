@@ -19,9 +19,7 @@ import com.example.documentscanner.ui.screens.DocumentListScreen
 import com.example.documentscanner.ui.screens.DocumentViewScreen
 import com.example.documentscanner.ui.screens.ExportsScreen
 import com.example.documentscanner.ui.screens.HomeScreen
-import com.example.documentscanner.ui.screens.ProfileScreen
 import com.example.documentscanner.ui.screens.SettingsScreen
-import com.example.documentscanner.utils.AppLockManager
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
@@ -31,7 +29,7 @@ sealed class Screen(val route: String) {
     object DocumentList : Screen("document_list")
     object DocumentView : Screen("document_view")
     object Exports : Screen("exports")
-    object Profile : Screen("profile")
+
     object Settings : Screen("settings")
 }
 
@@ -39,7 +37,7 @@ private val bottomNavRoutes = setOf(
     Screen.Home.route,
     Screen.DocumentList.route,
     Screen.Exports.route,
-    Screen.Profile.route
+
 )
 
 @Composable
@@ -107,9 +105,6 @@ fun NavGraph() {
                 )
             }
 
-            composable(Screen.Profile.route) {
-                ProfileScreen()
-            }
 
             // ── Full screen flows (no bottom bar) ─────────────────
             composable(Screen.Camera.route) {

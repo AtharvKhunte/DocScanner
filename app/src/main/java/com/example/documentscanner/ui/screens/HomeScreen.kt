@@ -145,7 +145,7 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Secure by default. Synced by choice.",
+                        "\"100% Offline. Encrypted. Private.",
                         fontSize = 13.sp,
                         color = DocVaultColors.TextSecondary,
                         textAlign = TextAlign.Center
