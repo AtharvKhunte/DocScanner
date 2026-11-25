@@ -1,5 +1,6 @@
 package com.example.documentscanner.ui.screens
 import androidx.compose.material.icons.filled.CameraAlt
+import dev.atharvkhunte.docvault.R
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -35,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.documentscanner.R
+
 import com.example.documentscanner.data.entity.ScannedDocument
 import com.example.documentscanner.data.entity.pageList
 import com.example.documentscanner.ui.theme.DocVaultColors

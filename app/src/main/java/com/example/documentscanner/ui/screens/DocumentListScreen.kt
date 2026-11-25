@@ -41,7 +41,7 @@ import com.example.documentscanner.ui.viewmodel.DocumentListViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.ui.platform.LocalLocale
+
 
 enum class SortOrder { DATE_NEWEST, DATE_OLDEST, NAME_AZ, NAME_ZA }
 
@@ -188,7 +188,10 @@ private fun VaultDocumentCard(
     onDelete: () -> Unit,
     onRename: (String) -> Unit
 ) {
-    val dateStr = SimpleDateFormat("MMM dd, yyyy", LocalLocale.current.platformLocale).format(Date(document.dateCreated))
+    val dateStr = SimpleDateFormat(
+        "MMM dd, yyyy",
+        Locale.getDefault()
+    ).format(Date(document.dateCreated))
     val firstPage = document.pageList().firstOrNull()
     val pages = document.pageList().size
 

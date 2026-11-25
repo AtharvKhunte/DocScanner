@@ -10,22 +10,31 @@ plugins {
 }
 
 android {
-    namespace = "com.example.documentscanner"
+    namespace = "dev.atharvkhunte.docvault"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.documentscanner"
+        applicationId = "dev.atharvkhunte.docvault"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        create("release") {
+            storeFile = file("../docvault-release.jks")
+            storePassword = "Antara@2527"
+            keyAlias = "docvault"
+            keyPassword = "Antara@2527"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -48,7 +57,7 @@ android {
 }
 
 dependencies {
-    // === Supabase Core (Pinned to v3) ===
+    // === Supabase Cor e (Pinned to v3) ===
 
 
     // === Core Android ===
@@ -56,14 +65,21 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
-    // === Jetpack Compose UI ===
-    implementation("androidx.compose.ui:ui:1.6.0")
-    implementation("androidx.compose.ui:ui-graphics:1.6.0")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.6.0")
-    implementation("androidx.compose.material3:material3:1.1.2")
-    implementation("androidx.activity:activity-compose:1.8.1")
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.compose.foundation.layout.android)
+    // === Jetpack Compose ===
+    implementation(platform(libs.androidx.compose.bom))
+
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+
+// Compose testing and debugging
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // === Navigation ===
     implementation("androidx.navigation:navigation-compose:2.7.5")
